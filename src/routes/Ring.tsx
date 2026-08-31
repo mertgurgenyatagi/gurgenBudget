@@ -78,7 +78,16 @@ export function Ring() {
     const track = trackRef.current
     if (!track) return
 
-    const handleTransitionEnd = () => {
+    // 0 and N+1 are the clone slots used for the infinite-loop illusion.
+    // Landing on one is meant to be momentary: transitionend swaps it back
+    // to the matching real index (N or 1) once the settle animation
+    // finishes naturally. But starting a new drag before that animation
+    // completes cuts the transition short, so transitionend never fires —
+    // indexRef is left stranded on a clone, and the next swipe walks it
+    // further out of the padded array's range into genuinely empty slots.
+    // Fast/chained swiping makes that interruption common, so every new
+    // gesture re-checks and corrects this before trusting indexRef.
+    const normalizeIndex = () => {
       if (indexRef.current === 0) {
         indexRef.current = N
         setTransform(targetFor(N), false)
@@ -89,6 +98,7 @@ export function Ring() {
     }
 
     const onPointerDown = (e: PointerEvent) => {
+      normalizeIndex()
       const s = dragState.current
       s.dragging = true
       track.classList.add('dragging')
@@ -133,14 +143,14 @@ export function Ring() {
       goTo(next, true)
     }
 
-    track.addEventListener('transitionend', handleTransitionEnd)
+    track.addEventListener('transitionend', normalizeIndex)
     track.addEventListener('pointerdown', onPointerDown)
     track.addEventListener('pointermove', onPointerMove)
     track.addEventListener('pointerup', onPointerUp)
     track.addEventListener('pointercancel', onPointerUp)
 
     return () => {
-      track.removeEventListener('transitionend', handleTransitionEnd)
+      track.removeEventListener('transitionend', normalizeIndex)
       track.removeEventListener('pointerdown', onPointerDown)
       track.removeEventListener('pointermove', onPointerMove)
       track.removeEventListener('pointerup', onPointerUp)
