@@ -1,5 +1,10 @@
-import { RingPage } from './pages/RingPage'
+import { MonthSetupScreen } from './pages/MonthSetupScreen'
+
+const ITEMS = [
+  { name: 'Car wash', amount: 350 },
+  { name: 'Vet visit', amount: 900 },
+]
 
 export function FlexSpend() {
-  return <RingPage label="Flex Spend" tone="oklch(56% .12 60)" />
+  return <MonthSetupScreen label="Flex spend" items={ITEMS} kind="spend" />
 }

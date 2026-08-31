@@ -1,6 +1,6 @@
 :root {
   color-scheme: light dark;
-  font: 16px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
+  font: 16px/1.5 Inter, system-ui, 'Segoe UI', Roboto, sans-serif;
 
   /* Canon palette — see PROJECT.md "Color Palette" */
   --paper: oklch(95% .013 127);
@@ -69,4 +69,283 @@ html, body {
   height: 100%;
   padding: 20px;
   display: flex;
+}
+
+/* ===== Shared screen surface =====
+   Every ring screen is one card filling its slot: paper by default,
+   ink for the screens pitched on the dark band. */
+.screen {
+  width: 100%;
+  height: 100%;
+  border-radius: 28px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .15);
+}
+
+.screen--ink {
+  background: var(--ink);
+  color: var(--onink);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== Dashboard — the one figure ===== */
+.dash {
+  align-items: center;
+  justify-content: center;
+}
+
+.dash .fig {
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+}
+
+.dash .lbl {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--b-muted);
+}
+
+/* ===== Wishlist — ledger stub (torn bottom edge) ===== */
+.wish {
+  padding: 34px 26px 26px;
+  clip-path: polygon(0 0, 100% 0, 100% 97%, 95% 100%, 90% 97%, 85% 100%, 80% 97%, 75% 100%,
+    70% 97%, 65% 100%, 60% 97%, 55% 100%, 50% 97%, 45% 100%, 40% 97%, 35% 100%, 30% 97%,
+    25% 100%, 20% 97%, 15% 100%, 10% 97%, 5% 100%, 0 97%);
+}
+
+.wish .head {
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.wish .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  border-bottom: 1px dashed var(--rule);
+  padding: 12px 0;
+  font-size: 14px;
+}
+
+.wish .row .num {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.wish .row.bought {
+  text-decoration: line-through;
+  opacity: .5;
+}
+
+.wish .foot {
+  margin-top: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.wish .foot .lbl {
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.wish .foot .num {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+/* ===== Calendar — classic month grid, 4 per row ===== */
+.cal {
+  padding: 26px 20px;
+}
+
+.cal .head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.cal .head .month {
+  font-size: 12px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cal .head .allw {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cal .grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+}
+
+.cal .cell {
+  height: 48px;
+  border-radius: 8px;
+  background: var(--track);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+
+.cal .cell .d {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.cal .cell .v {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cal .cell.logged {
+  border: 1px solid var(--rule);
+}
+
+.cal .cell.unlogged {
+  border: 1px dashed var(--accent);
+  color: var(--accent);
+}
+
+.cal .cell.unlogged .d {
+  color: var(--accent);
+}
+
+.cal .cell.future {
+  opacity: .35;
+}
+
+/* ===== Settings — two-tone ===== */
+.set .top {
+  background: var(--ink);
+  color: var(--onink);
+  padding: 26px 24px;
+}
+
+.set .top .lbl {
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--b-muted);
+}
+
+.set .top .email {
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.set .bottom {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.set .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.set .row .num {
+  font-weight: 700;
+}
+
+.set .signout {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
+  margin-top: auto;
+}
+
+/* ===== Month Setup (x4) — bar share ===== */
+.ms {
+  padding: 22px 20px;
+}
+
+.ms .fig {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+}
+
+.ms .lbl {
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+
+.ms .bar {
+  margin: 12px 0;
+}
+
+.ms .bar .top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+.ms .bar .top .n {
+  color: var(--muted);
+}
+
+.ms .bar .top .num {
+  font-weight: 700;
+}
+
+.ms .bar .track {
+  height: 7px;
+  border-radius: 4px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.ms .bar .fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.ms .add {
+  margin-top: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
 }

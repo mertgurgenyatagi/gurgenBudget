@@ -1,5 +1,7 @@
-import { RingPage } from './pages/RingPage'
+import { MonthSetupScreen } from './pages/MonthSetupScreen'
+
+const ITEMS = [{ name: 'Salary', amount: 45000 }]
 
 export function BaseIncome() {
-  return <RingPage label="Base Income" tone="oklch(52% .105 137)" />
+  return <MonthSetupScreen label="Base income" items={ITEMS} kind="income" />
 }

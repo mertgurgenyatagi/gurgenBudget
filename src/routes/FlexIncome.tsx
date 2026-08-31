@@ -1,5 +1,10 @@
-import { RingPage } from './pages/RingPage'
+import { MonthSetupScreen } from './pages/MonthSetupScreen'
+
+const ITEMS = [
+  { name: 'Freelance', amount: 3200 },
+  { name: 'Side gig', amount: 1150 },
+]
 
 export function FlexIncome() {
-  return <RingPage label="Flex Income" tone="oklch(45% .11 139)" />
+  return <MonthSetupScreen label="Flex income" items={ITEMS} kind="income" />
 }
