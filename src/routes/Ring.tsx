@@ -60,7 +60,14 @@ export function Ring() {
   useLayoutEffect(() => {
     const measure = () => {
       slotWidthRef.current = screenRef.current?.clientWidth ?? window.innerWidth
-      setTransform(targetFor(indexRef.current), false)
+      // Mobile browsers fire resize when their address bar hides/shows on
+      // scroll, which can happen mid-swipe. Re-snapping the transform then
+      // would yank the ring out from under the finger, so skip it while a
+      // drag is in progress — the drag's own math already tracks the finger
+      // correctly and will re-sync on the next pointerup.
+      if (!dragState.current.dragging) {
+        setTransform(targetFor(indexRef.current), false)
+      }
     }
     measure()
     window.addEventListener('resize', measure)
