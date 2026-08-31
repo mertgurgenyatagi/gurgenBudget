@@ -1,6 +1,23 @@
 :root {
   color-scheme: light dark;
   font: 16px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
+
+  /* Canon palette — see PROJECT.md "Color Palette" */
+  --paper: oklch(95% .013 127);
+  --ink: oklch(21% .037 134);
+  --muted: oklch(53% .027 131);
+  --rule: oklch(85% .015 127);
+  --track: oklch(89% .016 128);
+  --accent: oklch(45% .11 139);
+  --short: oklch(53% .12 41);
+  --onink: oklch(95% .013 127);
+
+  /* Dark hero band (re-pitched) */
+  --b-muted: oklch(72% .028 132);
+  --b-rule: oklch(34% .04 133);
+  --b-track: oklch(30% .035 133);
+  --b-logged: oklch(57% .095 141);
+  --b-short: oklch(59% .132 42);
 }
 
 * {
