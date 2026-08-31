@@ -332,8 +332,27 @@ html, body {
   border-bottom: 1px solid var(--rule);
 }
 
-.set .row .num {
+.set .buffer-field {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
   font-weight: 700;
+}
+
+.set .buffer-input {
+  width: 48px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  text-align: right;
+  padding: 0;
+}
+
+.set .buffer-input:focus {
+  outline: none;
+  border-bottom: 1px solid var(--ink);
 }
 
 /* Deliberately quieter than the Buffer row above it — an afterthought,
@@ -347,6 +366,7 @@ html, body {
   color: var(--muted);
   padding-bottom: 12px;
   border-bottom: 1px solid var(--rule);
+  text-decoration: none;
 }
 
 .set .signout {
@@ -354,6 +374,7 @@ html, body {
   font-weight: 700;
   color: var(--muted);
   text-align: center;
+  cursor: pointer;
 }
 
 /* ===== Month Setup (x4) — bar share ===== */
