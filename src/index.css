@@ -374,3 +374,19 @@ html, body {
   color: var(--muted);
   text-align: center;
 }
+
+.save-error {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  background: var(--short);
+  color: var(--onink);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 12px 30px -12px rgba(0, 0, 0, .5);
+}
