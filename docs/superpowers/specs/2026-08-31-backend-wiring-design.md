@@ -118,8 +118,23 @@ DailyAllowance = (Surplus × (1 − pct) − Wishlist) / daysInMonth
 // buffer.mode === 'slice'
 DailyAllowance = ((Surplus − Wishlist) / daysInMonth) × (1 − pct)
 
-MoneySaved = Surplus − spendSoFar − (DailyAllowance × remainingDays) − purchasedTotal
+MoneySaved = Surplus + spendSoFar − (DailyAllowance × remainingDays) − purchasedTotal
 ```
+
+**Sign note, caught while drafting the formula tests, worth recording so it
+doesn't regress:** `spendSoFar` sums the *raw* daily logs — negative when
+money left the account, per the Daily Log's own convention (PROJECT.md:
+"the raw, whole change in their bank balance for that day"). PROJECT.md's
+prose ("Surplus − sum of actual daily logs") reads as a subtraction, but
+taken literally with that sign convention it's wrong: plugging in numbers
+(Surplus 10,000, no Wishlist, no Buffer, spending exactly the ₺333/day
+allowance for 10 days) makes Money Saved *climb* from 0 toward 20,000 over
+the month under literal subtraction — i.e. spending exactly your allowance
+would manufacture money from nowhere. Money Saved is supposed to **sit
+flat** at the cushion value while spending stays on pace (PROJECT.md's own
+word is "sitting", not "arriving at"), which only holds with `+ spendSoFar`
+as written above. Re-verified against the hand-derived example: both modes
+still land exactly on `Wishlist + bonus` at month end with this sign.
 
 `MoneySaved` takes no branch on Buffer mode — it consumes whichever
 `DailyAllowance` was already computed. Verified both modes preserve the
