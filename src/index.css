@@ -9,20 +9,27 @@
 
 html, body {
   margin: 0;
-  height: 100dvh;
-  overflow: hidden;
   overscroll-behavior: none;
   background: oklch(95% .013 127);
+  /* No explicit height/overflow here on purpose: Chrome only collapses
+     its dynamic toolbar in response to an actual scroll, so the page
+     needs genuine (if invisible) scroll room. #root's 100vh below is
+     that room — plain `vh` resolves to the *large* viewport (toolbars
+     assumed retracted) in Chrome, so it's taller than what's visible
+     while the toolbar is showing. main.tsx nudges the page 1px into
+     that slack on load, which triggers the collapse; once collapsed,
+     the visible area grows to match 100vh and there's nothing left
+     to scroll into. */
 }
 
 #root {
-  height: 100dvh;
+  min-height: 100vh;
 }
 
 .ring-screen {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   overflow: hidden;
   background: oklch(95% .013 127);
 }
