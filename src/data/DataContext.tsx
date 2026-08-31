@@ -32,7 +32,7 @@ interface DataState {
   editItem: (item: Item, changes: { name?: string; amount?: number }, month: MonthKey) => void
   deleteItem: (item: Item, month: MonthKey) => void
   moveItem: (item: Item, category: Category) => void
-  setPurchased: (item: Item, purchased: boolean) => void
+  setActive: (item: Item, active: boolean) => void
   logDay: (day: DayKey, amount: number | null) => void
   setBuffer: (percent: number, mode: BufferMode, month: MonthKey) => void
 }
@@ -52,7 +52,7 @@ function itemFromDoc(id: string, raw: DocumentData): Item {
     deletedMonth: raw.deletedMonth ?? null,
     month: raw.month ?? null,
     deleted: raw.deleted === true,
-    purchased: raw.purchased === true,
+    active: raw.active !== false,
   }
 }
 
@@ -125,7 +125,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         deletedMonth: null,
         month: isBase(category) ? null : month,
         deleted: false,
-        purchased: false,
+        active: true,
       }).catch(report)
     },
     [uid, report],
@@ -164,18 +164,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const moveItem = useCallback<DataState['moveItem']>(
     (item, category) => {
       if (!uid) return
-      updateDoc(doc(db, 'users', uid, 'items', item.id), {
-        category,
-        purchased: category === 'wishlist' ? item.purchased : false,
-      }).catch(report)
+      updateDoc(doc(db, 'users', uid, 'items', item.id), { category }).catch(report)
     },
     [uid, report],
   )
 
-  const setPurchased = useCallback<DataState['setPurchased']>(
-    (item, purchased) => {
+  const setActive = useCallback<DataState['setActive']>(
+    (item, active) => {
       if (!uid) return
-      updateDoc(doc(db, 'users', uid, 'items', item.id), { purchased }).catch(report)
+      updateDoc(doc(db, 'users', uid, 'items', item.id), { active }).catch(report)
     },
     [uid, report],
   )
@@ -220,13 +217,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
       editItem,
       deleteItem,
       moveItem,
-      setPurchased,
+      setActive,
       logDay,
       setBuffer,
     }),
     [
       items, days, buffer, loaded, saveError,
-      addItem, editItem, deleteItem, moveItem, setPurchased, logDay, setBuffer,
+      addItem, editItem, deleteItem, moveItem, setActive, logDay, setBuffer,
     ],
   )
 

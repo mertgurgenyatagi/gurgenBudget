@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   amountInMonth,
+  categoryTotal,
   dailyAllowance,
   moneySaved,
   spendSoFar,
@@ -19,7 +20,7 @@ function item(overrides: Partial<Item> = {}): Item {
     deletedMonth: null,
     month: null,
     deleted: false,
-    purchased: false,
+    active: true,
     ...overrides,
   }
 }
@@ -62,6 +63,18 @@ describe('amountInMonth — flex/wishlist items', () => {
       deleted: true,
     })
     expect(amountInMonth(removed, '2026-04')).toBeNull()
+  })
+})
+
+describe('categoryTotal — wishlist active/inactive', () => {
+  it('excludes inactive wishlist items from the total, but not other categories', () => {
+    const items = [
+      item({ id: 'a', category: 'wishlist', month: '2026-04', createdMonth: '2026-04', amount: 1000, active: true }),
+      item({ id: 'b', category: 'wishlist', month: '2026-04', createdMonth: '2026-04', amount: 500, active: false }),
+      item({ id: 'c', category: 'baseIncome', amount: 200, active: false }),
+    ]
+    expect(categoryTotal(items, '2026-04', 'wishlist')).toBe(1000)
+    expect(categoryTotal(items, '2026-04', 'baseIncome')).toBe(200)
   })
 })
 
@@ -117,7 +130,7 @@ describe('moneySaved', () => {
       days.set(`2026-04-${String(d).padStart(2, '0')}`, -allowance)
     }
     const at = new Date('2026-05-01T00:00:00Z') // April fully elapsed
-    const saved = moneySaved(surplusValue, days, '2026-04', allowance, 0, at)
+    const saved = moneySaved(surplusValue, days, '2026-04', allowance, at)
     expect(saved).toBeCloseTo(wishlistTotal + surplusValue * 0.1, 6)
   })
 
@@ -130,14 +143,14 @@ describe('moneySaved', () => {
       days.set(`2026-04-${String(d).padStart(2, '0')}`, -allowance)
     }
     const at = new Date('2026-05-01T00:00:00Z')
-    const saved = moneySaved(surplusValue, days, '2026-04', allowance, 0, at)
+    const saved = moneySaved(surplusValue, days, '2026-04', allowance, at)
     expect(saved).toBeCloseTo(wishlistTotal + (surplusValue - wishlistTotal) * 0.1, 6)
   })
 
   it('an unlogged day contributes zero', () => {
     const days = new Map<string, number>([['2026-04-01', -100]])
     const at = new Date('2026-04-10T00:00:00Z') // elapsed = 9 loggable days
-    const saved = moneySaved(1000, days, '2026-04', 30, 0, at)
+    const saved = moneySaved(1000, days, '2026-04', 30, at)
     expect(saved).toBe(1000 + -100 - 30 * (30 - 9))
   })
 })

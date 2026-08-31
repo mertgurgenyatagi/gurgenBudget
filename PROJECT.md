@@ -112,9 +112,16 @@ A deliberately semi-separate sub-system — *"a playground, not in terms of feel
 
 ### The Wishlist list
 
-- The only ways the list itself changes: items **added**, **deleted**, or **moved to/from Flex Spend**.
-- The Wishlist total feeding the Daily Allowance formula is the sum of the list as it currently stands.
+- The only ways the list itself changes: items **added**, **deleted**, **moved to/from Flex Spend**, or toggled **active/inactive** (see below).
+- The Wishlist total feeding the Daily Allowance formula is the sum of the **active** items currently in the list — an inactive item contributes nothing to it.
 - The list is **flat and unordered** — no manual reordering or priority ranking. Items show in the order added.
+
+### Active / inactive (replaces the old "purchased" mechanic)
+
+- Every Wishlist item carries an **Active** checkbox, on by default when the item is added.
+- Unchecking it makes the item **behave exactly like a deleted item** for that month's math — excluded from the Wishlist total, and therefore from the Daily Allowance and Money Saved calculations that total feeds into.
+- Unlike a delete, it's **fully surfaced and instantly reversible**: the item stays visible in the list, dimmed via opacity, and re-checking Active brings it right back into the totals. No quiet/unsurfaced history involved — this is a plain, user-facing toggle, not the deletion safety net.
+- There is no separate "purchased" state, no crossing-out, and marking an item inactive **does not consume Money Saved** the way the old purchased mechanic did — it simply removes the item's amount from the Wishlist total, same as any other item leaving the list would.
 
 ### Money Saved
 
@@ -125,18 +132,8 @@ Money Saved = Surplus − (sum of actual daily logs so far) − (projected spend
 - The projection applies the **Daily Allowance to every remaining day of the month**.
 - Money Saved **resets to a zero basis each month**, computed purely from that month's own Surplus. There is no carry-over from prior months.
 - **Money Saved lives on the Wishlist page** — not a separate screen.
-- **Confirmed: the basis is the full Surplus, not `Surplus − Wishlist`.** This looked like a leftover asymmetry from the old multi-allowance design, but it's actually load-bearing: Money Saved is explicitly *"your currency on the Wishlist playground"* — the balance you spend by marking Wishlist items purchased. Subtracting the Wishlist from the basis instead would zero out that purchasing power and break the mechanic. No change needed.
+- **Confirmed: the basis is the full Surplus, not `Surplus − Wishlist`.** This looked like a leftover asymmetry from the old multi-allowance design, but it's actually load-bearing: Money Saved is explicitly *"your currency on the Wishlist playground"* — the moment a Wishlist item's amount is folded into the Wishlist total, most of its cost is immediately credited to Money Saved by shrinking the rest of the month's Daily Allowance. Subtracting the Wishlist from the basis instead would zero out that purchasing power and break the mechanic. No change needed.
 - Spending exactly the Daily Allowance every day of the month leaves Money Saved sitting at the Wishlist total plus a bonus cushion — precisely enough to buy the entire current Wishlist, plus that cushion. The cushion's size depends on the Buffer mode: `Surplus × Buffer%` under "of surplus", `(Surplus − Wishlist) × Buffer%` under "of full slice". The Money Saved formula itself doesn't change between modes — it's defined purely in terms of Surplus and the Daily Allowance, so it inherits whichever Buffer mode produced that allowance automatically.
-
-### Marking an item purchased
-
-- Within the Wishlist view, an item can be marked **purchased**.
-- This **consumes some of the projected Money Saved**.
-- It does **not** touch the Wishlist total used in the Daily Allowance formula, and does **not** touch the daily log.
-- A purchased item **stays visible in the list, crossed out**. It is not moved to a separate list.
-- Marking purchased is **reversible** — it can be un-marked if done by mistake.
-- Marking purchased simply deducts the item's **existing stored amount**. There is no separate "confirm actual amount paid" step. If the estimate was wrong, edit the item's amount the normal way, like any other item.
-- **Confirmed: purchases leave a record past month-end, surfaced through History.** Wishlist items don't carry forward into the next month, but each month's Wishlist (including which items were marked purchased) is retained and shown when browsing that month in History — the same way Base items are. No separate Purchase History screen; browsing into a past month shows its full Wishlist as it stood, purchased items crossed out in context.
 
 ---
 
@@ -148,7 +145,7 @@ Not yet designed, but the spec implies at minimum:
 - **Calendar** (the Daily log) — the unlogged-days catch-up flow. Exact interaction (day-grid vs. sequential prompt) is a design decision, not yet made. **Changing month happens here**, in the grid's own header — see History below.
 - **Base Income**, **Flex Income**, **Base Spend**, **Flex Spend** — four separate screens (not one combined "Month setup" screen). Items added/edited one at a time. Flex Spend shares its add entry point with Wishlist, via a list toggle.
 - **Wishlist** — the Wishlist list (flat, unordered) and Money Saved together.
-- **History** — past months, still fully editable; each past month shows its own Base/Flex figures *and* its own Wishlist (purchased items crossed out in context). Separated from the current month by display only. **History is not a destination screen.** Its main job — moving between months — belongs to the **Calendar**, whose header steps back and forward through months; browsing a past month is the same grid with that month's days filled in. Whatever else History covers is reached from a **quiet row in Settings**, deliberately a tucked-away afterthought rather than a headline screen. It is not on the swipe ring.
+- **History** — past months, still fully editable; each past month shows its own Base/Flex figures *and* its own Wishlist (inactive items shown dimmed in context). Separated from the current month by display only. **History is not a destination screen.** Its main job — moving between months — belongs to the **Calendar**, whose header steps back and forward through months; browsing a past month is the same grid with that month's days filled in. Whatever else History covers is reached from a **quiet row in Settings**, deliberately a tucked-away afterthought rather than a headline screen. It is not on the swipe ring.
 - **Settings** — a visible, dedicated screen. The Buffer (percent + mode toggle) lives here (not edited inline elsewhere), alongside things like sign-out, plus the low-key History entry described above.
 
 ---
@@ -182,7 +179,7 @@ History is not on the ring: month changing lives in the Calendar and the remaind
 | `--accent` | `oklch(45% .11 139)` | deep moss/olive accent |
 | `--short` | `oklch(53% .12 41)` | warning/over-budget (warm rust) |
 | `--onink` | `oklch(95% .013 127)` | text on dark band |
-| `--backdrop` | `oklch(18% .006 127)` | the very dark gray ground the ring's cards float over |
+| `--backdrop` | `oklch(90% .025 85)` | light beige ground the ring's cards float over |
 
 ### Dark hero band (re-pitched)
 
@@ -276,3 +273,5 @@ The ring's backdrop went darker still — `--backdrop` is now a very dark gray (
 - Confirmed via a full live round-trip through the real account: add → shows in Wishlist and updates Money Saved and the Dashboard allowance → edit (pre-fills correctly) → delete (soft-deleted, not hard-removed, per the quiet-history undo backstop) → swipe navigation still intact both directions, deadzone confirmed not to swallow taps.
 
 **Month navigation and edits are no longer capped at the current month** — the `›` step in both the Calendar and History now goes as far into the future as you like, for pre-planning ahead (adding a Flex Income item for next month, say). The formulas already handled any month generically; this was only ever a self-imposed UI cap, now removed.
+
+**The "purchased" mechanic on Wishlist items was replaced with a plain Active/Inactive toggle.** Marking an item purchased used to leave it crossed out in the list while separately deducting its amount from the projected Money Saved, on top of the amount already being baked into the Wishlist total. That's gone. Every Wishlist item now carries an `active` field (defaulting to `true`); unchecking Active in the item sheet excludes the item from the Wishlist total for that month — the same effect a delete has on the Daily Allowance and Money Saved formulas — but, unlike a delete, it's a fully surfaced, instantly reversible toggle: the item stays in the list at reduced opacity rather than disappearing into the quiet deletion history. `formulas.ts` dropped `purchasedTotal` entirely and `moneySaved` no longer takes a purchased-amount argument; `categoryTotal` now filters out inactive Wishlist items before summing. Covered by an added Vitest case. Also, unrelated: `--backdrop` (the ring's ground color) went from dark gray to light beige. Both merged into `main`.

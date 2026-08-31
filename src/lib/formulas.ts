@@ -31,8 +31,10 @@ export interface Item {
   month: MonthKey | null
   /** Quiet safety net — deleted flex/wishlist items stay put, filtered from view. */
   deleted: boolean
-  /** Wishlist only. Purchased items stay in the list, crossed out. */
-  purchased: boolean
+  /** Wishlist only. Inactive items are excluded from the month's totals, same as
+   * deleted, but user-toggled and surfaced (dimmed row, checkbox) rather than
+   * a quiet backstop. Defaults to true. */
+  active: boolean
 }
 
 export type BufferMode = 'surplus' | 'slice'
@@ -100,10 +102,9 @@ export function itemsInMonth(items: Item[], month: MonthKey, category: Category)
 }
 
 export function categoryTotal(items: Item[], month: MonthKey, category: Category): number {
-  return itemsInMonth(items, month, category).reduce(
-    (sum, i) => sum + (amountInMonth(i, month) ?? 0),
-    0,
-  )
+  return itemsInMonth(items, month, category)
+    .filter((i) => i.category !== 'wishlist' || i.active)
+    .reduce((sum, i) => sum + (amountInMonth(i, month) ?? 0), 0)
 }
 
 /** Surplus = Base Income + Flex Income − Base Spend − Flex Spend. May be negative. */
@@ -156,15 +157,8 @@ export function spendSoFar(days: Map<DayKey, number>, month: MonthKey): number {
   return total
 }
 
-/** Wishlist items marked purchased — they consume Money Saved, nothing else. */
-export function purchasedTotal(items: Item[], month: MonthKey): number {
-  return itemsInMonth(items, month, 'wishlist')
-    .filter((i) => i.purchased)
-    .reduce((sum, i) => sum + (amountInMonth(i, month) ?? 0), 0)
-}
-
 /**
- * Money Saved = Surplus + spendSoFar − (allowance × remaining days) − purchased.
+ * Money Saved = Surplus + spendSoFar − (allowance × remaining days).
  * spendSoFar is added, not subtracted, because it's already negative when
  * money left the account — see the design spec's sign note.
  */
@@ -173,12 +167,11 @@ export function moneySaved(
   days: Map<DayKey, number>,
   month: MonthKey,
   allowance: number,
-  purchased: number,
   at?: Date,
 ): number {
   const elapsed = elapsedDays(month, at)
   const remaining = daysInMonth(month) - elapsed
-  return surplusValue + spendSoFar(days, month) - allowance * remaining - purchased
+  return surplusValue + spendSoFar(days, month) - allowance * remaining
 }
 
 /** Everything a month's screens need, computed fresh from the raw items. */
@@ -198,7 +191,7 @@ export function computeMonth(
   const surplusValue = baseIncome + flexIncome - baseSpend - flexSpend
   const { percent, mode } = resolveBuffer(buffer, month)
   const allowance = dailyAllowance(surplusValue, wishlist, month, percent, mode)
-  const saved = moneySaved(surplusValue, days, month, allowance, purchasedTotal(items, month), at)
+  const saved = moneySaved(surplusValue, days, month, allowance, at)
 
   return {
     baseIncome,

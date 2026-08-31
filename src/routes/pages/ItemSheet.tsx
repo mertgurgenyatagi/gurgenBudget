@@ -17,14 +17,15 @@ const MOVABLE: Category[] = ['flexSpend', 'wishlist']
 // Shared by Base/Flex Income, Base/Flex Spend, Wishlist, and History — one
 // sheet, opened by "+ Add" or by tapping an existing row. Flex Spend and
 // Wishlist additionally get the category toggle they share (PROJECT.md:
-// "share one add entry point with a toggle"), and a Purchased checkbox
-// while the item is currently in Wishlist.
+// "share one add entry point with a toggle"), and an Active checkbox while
+// the item is currently in Wishlist — unchecking it excludes the item from
+// this month's totals, same as a delete, but reversible at will.
 export function ItemSheet({ category, item, month, onClose }: ItemSheetProps) {
-  const { addItem, editItem, deleteItem, moveItem, setPurchased } = useData()
+  const { addItem, editItem, deleteItem, moveItem, setActive } = useData()
   const [name, setName] = useState(item?.name ?? '')
   const [amount, setAmount] = useState(item ? String(item.amount) : '')
   const [cat, setCat] = useState<Category>(item?.category ?? category)
-  const [purchased, setPurchasedDraft] = useState(item?.purchased ?? false)
+  const [active, setActiveDraft] = useState(item?.active ?? true)
 
   const canToggle = MOVABLE.includes(category)
 
@@ -35,7 +36,7 @@ export function ItemSheet({ category, item, month, onClose }: ItemSheetProps) {
     } else {
       if (cat !== item.category) moveItem(item, cat)
       editItem(item, { name, amount: amt }, month)
-      if (cat === 'wishlist' && purchased !== item.purchased) setPurchased(item, purchased)
+      if (cat === 'wishlist' && active !== item.active) setActive(item, active)
     }
     onClose()
   }
@@ -85,13 +86,13 @@ export function ItemSheet({ category, item, month, onClose }: ItemSheetProps) {
           </div>
         )}
         {cat === 'wishlist' && (
-          <label className="sheet-purchased">
+          <label className="sheet-active">
             <input
               type="checkbox"
-              checked={purchased}
-              onChange={(e) => setPurchasedDraft(e.target.checked)}
+              checked={active}
+              onChange={(e) => setActiveDraft(e.target.checked)}
             />
-            Purchased
+            Active
           </label>
         )}
         <div className="sheet-actions">
