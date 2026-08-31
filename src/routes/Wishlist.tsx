@@ -1,31 +1,33 @@
-import { lira } from '../money'
-
-// Placeholder items — no Firestore behind these yet.
-const ITEMS = [
-  { name: 'New guitar', amount: 28000, purchased: false },
-  { name: 'Sneakers', amount: 4200, purchased: false },
-  { name: 'Concert tickets', amount: 2500, purchased: true },
-  { name: 'Weekend trip', amount: 15000, purchased: false },
-  { name: 'Wireless earbuds', amount: 3800, purchased: true },
-]
-
-const MONEY_SAVED = 56900
+import { useState } from 'react'
+import { useData } from '../data/DataContext'
+import { computeMonth, itemsInMonth, type Item } from '../lib/formulas'
+import { currentMonth } from '../lib/time'
+import { ItemSheet } from './pages/ItemSheet'
+import { WishlistBody } from './pages/WishlistBody'
 
 export function Wishlist() {
+  const { items, days, buffer } = useData()
+  const [editing, setEditing] = useState<Item | 'new' | null>(null)
+  const month = currentMonth()
+  const wishlistItems = itemsInMonth(items, month, 'wishlist')
+  const figures = computeMonth(items, days, buffer, month)
+
   return (
     <div className="screen wish">
-      <div className="head">Wishlist</div>
-      {ITEMS.map((item) => (
-        // Purchased items stay in the list, struck through — never moved out.
-        <div className={item.purchased ? 'row bought' : 'row'} key={item.name}>
-          <span>{item.name}</span>
-          <span className="num">{lira(item.amount)}</span>
-        </div>
-      ))}
-      <div className="foot">
-        <span className="lbl">Money saved</span>
-        <span className="num">{lira(MONEY_SAVED)}</span>
-      </div>
+      <WishlistBody
+        items={wishlistItems}
+        moneySaved={figures.moneySaved}
+        onSelectItem={setEditing}
+        onAdd={() => setEditing('new')}
+      />
+      {editing !== null && (
+        <ItemSheet
+          category="wishlist"
+          item={editing === 'new' ? null : editing}
+          month={month}
+          onClose={() => setEditing(null)}
+        />
+      )}
     </div>
   )
 }

@@ -127,7 +127,7 @@ html, body {
     25% 100%, 20% 97%, 15% 100%, 10% 97%, 5% 100%, 0 97%);
 }
 
-.wish .head {
+.wishlist-body .head {
   font-size: 10px;
   letter-spacing: .16em;
   text-transform: uppercase;
@@ -135,7 +135,7 @@ html, body {
   margin-bottom: 20px;
 }
 
-.wish .row {
+.wishlist-body .row {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
@@ -143,19 +143,29 @@ html, body {
   border-bottom: 1px dashed var(--rule);
   padding: 12px 0;
   font-size: 14px;
+  cursor: pointer;
 }
 
-.wish .row .num {
+.wishlist-body .row .num {
   font-size: 15px;
   font-weight: 700;
 }
 
-.wish .row.bought {
+.wishlist-body .row.bought {
   text-decoration: line-through;
   opacity: .5;
 }
 
-.wish .foot {
+.wishlist-body .add {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
+  cursor: pointer;
+}
+
+.wishlist-body .foot {
   margin-top: 22px;
   display: flex;
   justify-content: space-between;
@@ -163,14 +173,14 @@ html, body {
   gap: 12px;
 }
 
-.wish .foot .lbl {
+.wishlist-body .foot .lbl {
   font-size: 10px;
   letter-spacing: .1em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
-.wish .foot .num {
+.wishlist-body .foot .num {
   font-size: 32px;
   font-weight: 800;
   color: var(--accent);
