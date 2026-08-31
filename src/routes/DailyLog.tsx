@@ -43,8 +43,14 @@ function amountFor(change: number): string {
 export function DailyLog() {
   return (
     <div className="screen cal">
+      {/* Month changing lives here rather than on a History screen — stepping
+          back through past months is the same grid, just filled in. */}
       <div className="head">
-        <span className="month">{MONTH}</span>
+        <div className="month">
+          <span className="step">‹</span>
+          <span className="name">{MONTH}</span>
+          <span className="step">›</span>
+        </div>
         <span className="allw num">Allowance {lira(ALLOWANCE)}/day</span>
       </div>
       <div className="grid">

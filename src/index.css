@@ -11,6 +11,9 @@
   --accent: oklch(45% .11 139);
   --short: oklch(53% .12 41);
   --onink: oklch(95% .013 127);
+  /* The ground the ring's cards sit on — deliberately darker than the
+     paper cards so each screen reads as a card floating over it. */
+  --backdrop: oklch(70% .008 127);
 
   /* Dark hero band (re-pitched) */
   --b-muted: oklch(72% .028 132);
@@ -29,7 +32,7 @@ html, body {
   height: 100dvh;
   overflow: hidden;
   overscroll-behavior: none;
-  background: oklch(95% .013 127);
+  background: var(--backdrop);
 }
 
 #root {
@@ -45,7 +48,7 @@ html, body {
   width: 100%;
   height: 100dvh;
   overflow: hidden;
-  background: oklch(95% .013 127);
+  background: var(--backdrop);
 }
 
 .ring-track {
@@ -187,10 +190,20 @@ html, body {
 }
 
 .cal .head .month {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 12px;
   letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+.cal .head .month .step {
+  font-size: 17px;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--ink);
 }
 
 .cal .head .allw {
@@ -283,12 +296,24 @@ html, body {
   font-weight: 700;
 }
 
+/* Deliberately quieter than the Buffer row above it — an afterthought,
+   sitting with Sign out at the foot of the panel. */
+.set .aside {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--muted);
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
 .set .signout {
   font-size: 12px;
   font-weight: 700;
   color: var(--muted);
   text-align: center;
-  margin-top: auto;
 }
 
 /* ===== Month Setup (x4) — bar share ===== */

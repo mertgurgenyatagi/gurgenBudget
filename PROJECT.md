@@ -138,11 +138,11 @@ Money Saved = Surplus − (sum of actual daily logs so far) − (projected spend
 Not yet designed, but the spec implies at minimum:
 
 - **Dashboard / home** — the default screen on open: this month's numbers and current Daily Allowance, with logging one tap away. No first-run onboarding — even on a brand-new account, it's the same empty dashboard, figured out as you go.
-- **Calendar** (the Daily log) — the unlogged-days catch-up flow. Exact interaction (day-grid vs. sequential prompt) is a design decision, not yet made.
+- **Calendar** (the Daily log) — the unlogged-days catch-up flow. Exact interaction (day-grid vs. sequential prompt) is a design decision, not yet made. **Changing month happens here**, in the grid's own header — see History below.
 - **Base Income**, **Flex Income**, **Base Spend**, **Flex Spend** — four separate screens (not one combined "Month setup" screen). Items added/edited one at a time. Flex Spend shares its add entry point with Wishlist, via a list toggle.
 - **Wishlist** — the Wishlist list (flat, unordered) and Money Saved together.
-- **History** — past months, still fully editable; each past month shows its own Base/Flex figures *and* its own Wishlist (purchased items crossed out in context). Navigated via a direct picker (jump to any month), not just back/forward. Separated from the current month by display only. Outside the swipe ring below — reached its own way, not by swiping.
-- **Settings** — a visible, dedicated screen. The Buffer lives here (not edited inline elsewhere), alongside things like sign-out.
+- **History** — past months, still fully editable; each past month shows its own Base/Flex figures *and* its own Wishlist (purchased items crossed out in context). Separated from the current month by display only. **History is not a destination screen.** Its main job — moving between months — belongs to the **Calendar**, whose header steps back and forward through months; browsing a past month is the same grid with that month's days filled in. Whatever else History covers is reached from a **quiet row in Settings**, deliberately a tucked-away afterthought rather than a headline screen. It is not on the swipe ring.
+- **Settings** — a visible, dedicated screen. The Buffer lives here (not edited inline elsewhere), alongside things like sign-out, plus the low-key History entry described above.
 
 ---
 
@@ -154,10 +154,10 @@ From Dashboard:
 
 - **swipe right once** → Calendar
 - **swipe left once** → Wishlist
-- **swipe left twice** → Settings
-- continuing left past Settings → the four Month Setup screens (Base Income, Flex Income, Base Spend, Flex Spend) — internal order among these four not yet decided — then back around to Calendar, closing the ring.
+- continuing left past Wishlist → the four Month Setup screens, in the order **Base Income, Flex Income, Base Spend, Flex Spend**
+- **then Settings**, which sits between Flex Spend and Calendar — i.e. one swipe *right* of Calendar, two swipes right of Dashboard — closing the ring.
 
-History is not on the ring; it keeps the direct month-picker navigation described above.
+History is not on the ring: month changing lives in the Calendar and the remainder hangs off Settings, as described above.
 
 ---
 
@@ -175,6 +175,7 @@ History is not on the ring; it keeps the direct month-picker navigation describe
 | `--accent` | `oklch(45% .11 139)` | deep moss/olive accent |
 | `--short` | `oklch(53% .12 41)` | warning/over-budget (warm rust) |
 | `--onink` | `oklch(95% .013 127)` | text on dark band |
+| `--backdrop` | `oklch(70% .008 127)` | the darker gray ground the ring's cards float over |
 
 ### Dark hero band (re-pitched)
 
@@ -244,5 +245,7 @@ The Dashboard ring screen is the first to move past the colored `RingPage` place
 - **Calendar** — classic month grid with all three confirmed refinements applied: **4 rectangles per row** (the exhibit's own screenshot still shows 7), **no minus signs** on logged amounts (a money-in day keeps its `+`), and a **variable-intensity tint per day** — rust past the Daily Allowance, moss under it, saturation scaled by the size of the gap and mixed against paper with `color-mix` so the figures stay legible.
 - **Settings** — two-tone: ink account band over a paper panel holding Buffer and Sign out.
 - **Base Income, Flex Income, Base Spend, Flex Spend** — bar share, one labeled bar per item sized to its share of the category total; income bars moss, spend bars rust. They stay four distinct ring screens, sharing one presentational component rather than four copies of the same markup.
+
+Three follow-up passes on that UI, all merged: the ring's backdrop went to a **darker gray** (`--backdrop`) so the paper cards read as cards floating over a ground rather than paper on paper; **Settings moved on the ring** to sit between Flex Spend and Calendar, one swipe right of Calendar; and **History was dissolved as a destination** — month stepping now lives in the Calendar header (`‹ April ›`), and the leftover History entry is a quiet row at the foot of Settings. `/history` still exists as a route with the old colored placeholder behind it, unlinked and undesigned.
 
 Supporting changes: **Inter** is now loaded as the app's typeface (every picked design was drawn in it), and whole-lira formatting lives in one place (`src/money.ts`) so no screen hand-rolls it. Every figure on every screen is still hardcoded placeholder data — this pass is deliberately UI-only, with no Firestore reads, no formulas, and no interactivity behind the "+ Add", "log", and "Sign out" affordances. **History** is the one screen still on the colored `RingPage` placeholder: it sits off the ring and never had an Exhibop run, so no design has been picked for it yet. That work is merged into `main`.

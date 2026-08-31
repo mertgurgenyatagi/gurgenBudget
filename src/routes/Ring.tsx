@@ -9,17 +9,18 @@ import { Settings } from './Settings'
 import { Wishlist } from './Wishlist'
 
 // Ring order: increasing index = swipe left. Matches PROJECT.md's
-// "swipe right once -> Calendar, swipe left once -> Wishlist, swipe left
-// twice -> Settings, continuing left -> the four Month Setup screens,
-// then back around to Calendar, closing the ring."
+// "swipe right once -> Calendar, swipe left once -> Wishlist, continuing
+// left -> the four Month Setup screens, then Settings, then back around to
+// Calendar, closing the ring." Settings sits between Flex Spend and
+// Calendar, one swipe right of Calendar.
 const PAGES = [
   <Dashboard key="dashboard" />,
   <Wishlist key="wishlist" />,
-  <Settings key="settings" />,
   <BaseIncome key="base-income" />,
   <FlexIncome key="flex-income" />,
   <BaseSpend key="base-spend" />,
   <FlexSpend key="flex-spend" />,
+  <Settings key="settings" />,
   <DailyLog key="calendar" />,
 ]
 
