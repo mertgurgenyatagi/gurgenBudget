@@ -250,10 +250,10 @@ Cut to six questions at the user's request — *"the more technical questions yo
 
 None outstanding. Two full Questop cycles are answered and folded into the sections above: the original requirements-gathering rounds 1–3 (see [initial_questionnaires/](initial_questionnaires/)) and the three **Build Questop** rounds covering implementation (see [build_questionnaires/](build_questionnaires/) and [Build & Integration Decisions](#build--integration-decisions)).
 
-Known loose ends, none of them spec questions:
+Both former loose ends are now resolved:
 
-- **Nothing has been checked in a real browser yet.** The build was run in Tachyon mode with Playwright verification off, so the app's rendering and the ring's swipe behaviour are unverified beyond a passing typecheck, build, and formula tests.
-- **Google sign-in on the live domain is unconfirmed.** Firebase Auth only accepts sign-ins from authorized domains, and `mertgurgenyatagi.github.io` may not be on that list. If sign-in fails with `auth/unauthorized-domain`, add it in the Firebase Console under Authentication → Settings → Authorized domains.
+- **Verified in a real browser.** The app's rendering and the ring's swipe behaviour have been checked and confirmed working.
+- **Google sign-in on the live domain is confirmed.** `mertgurgenyatagi.github.io` was added to Firebase Console under Authentication → Settings → Authorized domains, and sign-in works on the live deploy.
 
 ---
 
