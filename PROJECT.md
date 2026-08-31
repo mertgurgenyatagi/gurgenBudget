@@ -138,11 +138,53 @@ Money Saved = Surplus − (sum of actual daily logs so far) − (projected spend
 Not yet designed, but the spec implies at minimum:
 
 - **Dashboard / home** — the default screen on open: this month's numbers and current Daily Allowance, with logging one tap away. No first-run onboarding — even on a brand-new account, it's the same empty dashboard, figured out as you go.
-- **Daily log** — the unlogged-days catch-up flow. Exact interaction (day-grid vs. sequential prompt) is a design decision, not yet made.
-- **Month setup** — Base and Flex items, and the resulting Surplus. Items added/edited one at a time; Flex Spend and Wishlist share one add entry point with a list toggle.
+- **Calendar** (the Daily log) — the unlogged-days catch-up flow. Exact interaction (day-grid vs. sequential prompt) is a design decision, not yet made.
+- **Base Income**, **Flex Income**, **Base Spend**, **Flex Spend** — four separate screens (not one combined "Month setup" screen). Items added/edited one at a time. Flex Spend shares its add entry point with Wishlist, via a list toggle.
 - **Wishlist** — the Wishlist list (flat, unordered) and Money Saved together.
-- **History** — past months, still fully editable; each past month shows its own Base/Flex figures *and* its own Wishlist (purchased items crossed out in context). Navigated via a direct picker (jump to any month), not just back/forward. Separated from the current month by display only.
+- **History** — past months, still fully editable; each past month shows its own Base/Flex figures *and* its own Wishlist (purchased items crossed out in context). Navigated via a direct picker (jump to any month), not just back/forward. Separated from the current month by display only. Outside the swipe ring below — reached its own way, not by swiping.
 - **Settings** — a visible, dedicated screen. The Buffer lives here (not edited inline elsewhere), alongside things like sign-out.
+
+---
+
+## Navigation — Swipeable Ring
+
+Cross-screen navigation is a horizontal swipe carousel, one screen per swipe, arranged in a **circular ring** around Dashboard rather than a tree of menus. The pattern was chosen from the **Exhibop** design exploration for the Dashboard screen ([exhibop/dashboard.html](exhibop/dashboard.html), 20 hand-crafted first-look mockups) — specifically design **#17, the carousel** — then extended app-wide.
+
+From Dashboard:
+
+- **swipe right once** → Calendar
+- **swipe left once** → Wishlist
+- **swipe left twice** → Settings
+- continuing left past Settings → the four Month Setup screens (Base Income, Flex Income, Base Spend, Flex Spend) — internal order among these four not yet decided — then back around to Calendar, closing the ring.
+
+History is not on the ring; it keeps the direct month-picker navigation described above.
+
+---
+
+## Color Palette
+
+### Light (paper/sheet)
+
+| Token | Value | Purpose |
+|---|---|---|
+| `--paper` | `oklch(95% .013 127)` | sage paper background |
+| `--ink` | `oklch(21% .037 134)` | near-black text |
+| `--muted` | `oklch(53% .027 131)` | secondary text |
+| `--rule` | `oklch(85% .015 127)` | hairlines |
+| `--track` | `oklch(89% .016 128)` | progress track |
+| `--accent` | `oklch(45% .11 139)` | deep moss/olive accent |
+| `--short` | `oklch(53% .12 41)` | warning/over-budget (warm rust) |
+| `--onink` | `oklch(95% .013 127)` | text on dark band |
+
+### Dark hero band (re-pitched)
+
+| Token | Value | Purpose |
+|---|---|---|
+| `--b-muted` | `oklch(72% .028 132)` | secondary text on dark band |
+| `--b-rule` | `oklch(34% .04 133)` | hairlines on dark band |
+| `--b-track` | `oklch(30% .035 133)` | progress track on dark band |
+| `--b-logged` | `oklch(57% .095 141)` | moss on dark |
+| `--b-short` | `oklch(59% .132 42)` | warning on dark |
 
 ---
 
@@ -174,6 +216,10 @@ Project scaffold is in place: Vite + React + TypeScript, React Router (`HashRout
 
 **The Firebase project is live**, created via the Firebase CLI: project ID `gurgenbudget`, Firestore in `europe-west3`. `firestore.rules` scopes every document to `/users/{uid}/**`, readable/writable only by that uid — any future data model must nest under that path. Google sign-in is enabled in the Firebase console, and the 6 `VITE_FIREBASE_*` values are set as GitHub repository secrets, so the [deploy workflow](.github/workflows/deploy.yml) can build and publish to Pages on push to `main`.
 
-The scaffold, Firebase config, and this doc were committed, pushed, and merged into `main`. Work continues on the **`dashboard-ui`** branch, cut from `main`, whose focus is the Dashboard screen: real Daily Allowance/Surplus numbers backed by the data model, replacing the current stub.
+The scaffold, Firebase config, and this doc were committed, pushed, and merged into `main`.
 
-Next step is implementing the data model and the core formulas.
+Design exploration for the Dashboard screen was run via the **Exhibop** operation (Hallmark plugin) on the `dashboard-ui` branch: 20 hand-crafted first-look mockups at [exhibop/dashboard.html](exhibop/dashboard.html). Design #17, a swipeable carousel, was picked as the app's cross-screen navigation pattern and extended into the full ring described in [Navigation — Swipeable Ring](#navigation--swipeable-ring): Calendar one swipe right of Dashboard, Wishlist one swipe left, Settings two swipes left, and the four Month Setup screens (Base Income, Flex Income, Base Spend, Flex Spend — split into individual screens rather than one combined setup screen) filling the rest of the ring between Settings and Calendar. That work is merged into `main`.
+
+Work continues on the **`ms_pages_ui`** branch, cut from `main`, whose focus is building the four Month Setup screens (Base Income, Flex Income, Base Spend, Flex Spend) implied by the newly-settled ring structure.
+
+Next step is implementing the data model and the core formulas — still true for every screen, dashboard included, since no application logic has been written yet.

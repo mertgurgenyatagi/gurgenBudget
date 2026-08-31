@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dashboard Exhibop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --font: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-snap-type:y mandatory; scroll-behavior:auto;}
+  body{
+    font-family:var(--font);
+    background:#0b0b0c;
+    overflow-x:hidden;
+  }
+  .rail{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:50;
+    font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+    color:#fff;opacity:.32;font-weight:600;pointer-events:none;}
+
+  .exhibit{
+    height:100vh;width:100%;position:relative;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    scroll-snap-align:start;
+  }
+  .exhibit .tag{position:absolute;top:16px;left:16px;font-size:11px;letter-spacing:.09em;
+    font-weight:700;color:#fff;mix-blend-mode:difference;z-index:5;}
+  .exhibit .dismiss{position:absolute;top:12px;right:12px;z-index:5;
+    font-family:inherit;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    padding:7px 12px;border-radius:999px;border:1px solid #fff;background:transparent;color:#fff;
+    mix-blend-mode:difference;cursor:pointer;}
+  .exhibit .dismiss:hover{background:#fff;mix-blend-mode:normal;color:#000;}
+  .stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+
+  .phone{width:336px;height:648px;border-radius:30px;overflow:hidden;position:relative;
+    display:flex;flex-direction:column;box-shadow:0 40px 80px -30px rgba(0,0,0,.5);}
+
+  .num{font-variant-numeric:tabular-nums;}
+
+  /* ===== 01 — Numeral ===== */
+  .ex01{background:#f4f3ef;}
+  .ex01 .phone{background:#fff;align-items:center;justify-content:center;gap:10px;}
+  .ex01 .fig{font-size:76px;font-weight:800;letter-spacing:-.04em;color:#111;}
+  .ex01 .lbl{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#9a9a94;}
+
+  /* ===== 02 — Ledger ===== */
+  .ex02{background:#efe9db;}
+  .ex02 .phone{background:#fbf7ee;padding:44px 30px;color:#2a2620;
+    clip-path:polygon(0 0,100% 0,100% 96%,96% 100%,92% 96%,88% 100%,84% 96%,80% 100%,76% 96%,72% 100%,68% 96%,64% 100%,60% 96%,56% 100%,52% 96%,48% 100%,44% 96%,40% 100%,36% 96%,32% 100%,28% 96%,24% 100%,20% 96%,16% 100%,12% 96%,8% 100%,4% 96%,0 100%);}
+  .ex02 .head{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#a89f88;margin-bottom:26px;}
+  .ex02 .row{display:flex;justify-content:space-between;align-items:baseline;
+    border-bottom:1px dashed #cfc6ae;padding:12px 0;font-size:14px;}
+  .ex02 .row .num{font-size:15px;font-weight:700;}
+  .ex02 .foot{margin-top:30px;display:flex;justify-content:space-between;align-items:baseline;}
+  .ex02 .foot .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a89f88;}
+  .ex02 .foot .num{font-size:34px;font-weight:800;color:#5c4326;}
+
+  /* ===== 03 — Ring ===== */
+  .ex03{background:#101112;}
+  .ex03 .phone{background:#17181a;align-items:center;justify-content:center;}
+  .ex03 .ringwrap{position:relative;width:220px;height:220px;display:flex;align-items:center;justify-content:center;}
+  .ex03 svg{width:220px;height:220px;transform:rotate(-90deg);}
+  .ex03 .track{fill:none;stroke:#2b2c2f;stroke-width:10;}
+  .ex03 .fill{fill:none;stroke:#7fe0a7;stroke-width:10;stroke-linecap:round;
+    stroke-dasharray:339;stroke-dashoffset:142;}
+  .ex03 .center{position:absolute;text-align:center;}
+  .ex03 .center .fig{font-size:38px;font-weight:800;color:#fff;letter-spacing:-.03em;}
+  .ex03 .center .lbl{font-size:10px;color:#8b8f8c;letter-spacing:.14em;text-transform:uppercase;margin-top:4px;}
+  .ex03 .day{position:absolute;bottom:56px;font-size:11px;color:#6d716e;letter-spacing:.08em;}
+
+  /* ===== 04 — Bento ===== */
+  .ex04{background:#eef0ea;}
+  .ex04 .phone{background:#fff;padding:22px;display:grid;
+    grid-template-columns:1fr 1fr;grid-template-rows:1.3fr 1fr 1fr;gap:10px;}
+  .ex04 .cell{border-radius:16px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;}
+  .ex04 .c1{grid-column:1/3;background:#3c5a3e;color:#f2f6ee;}
+  .ex04 .c1 .fig{font-size:40px;font-weight:800;letter-spacing:-.03em;}
+  .ex04 .c2{background:#f2f1ea;color:#2c2c26;}
+  .ex04 .c3{background:#f2f1ea;color:#2c2c26;}
+  .ex04 .c4{background:#e7ded0;color:#5b4a2f;}
+  .ex04 .c5{background:#efe6e0;color:#63413a;}
+  .ex04 .cell .lbl{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;opacity:.65;}
+  .ex04 .cell .fig{font-size:22px;font-weight:800;letter-spacing:-.02em;}
+
+  /* ===== 05 — Split band (app canon palette) ===== */
+  .ex05{background:oklch(89% .016 128);
+    --paper:oklch(95% .013 127); --ink:oklch(21% .037 134); --muted:oklch(53% .027 131);
+    --rule:oklch(85% .015 127); --accent:oklch(45% .11 139); --onink:oklch(95% .013 127);}
+  .ex05 .phone{}
+  .ex05 .band{background:var(--ink);color:var(--onink);padding:36px 26px 30px;flex:0 0 44%;
+    display:flex;flex-direction:column;justify-content:flex-end;}
+  .ex05 .band .lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.6;margin-bottom:8px;}
+  .ex05 .band .fig{font-size:52px;font-weight:800;letter-spacing:-.03em;}
+  .ex05 .sheet{background:var(--paper);color:var(--ink);flex:1;padding:24px 26px;
+    display:flex;flex-direction:column;gap:16px;justify-content:center;}
+  .ex05 .line{display:flex;justify-content:space-between;border-bottom:1px solid var(--rule);padding-bottom:12px;}
+  .ex05 .line .lbl{font-size:12px;color:var(--muted);}
+  .ex05 .line .num{font-size:14px;font-weight:700;}
+
+  /* ===== 06 — Terminal ===== */
+  .ex06{background:#000;}
+  .ex06 .phone{background:#050705;color:#7fe89a;padding:26px 22px;font-weight:500;justify-content:center;}
+  .ex06 .prompt{font-size:12px;opacity:.55;margin-bottom:18px;}
+  .ex06 .fig{font-size:44px;font-weight:800;letter-spacing:-.02em;}
+  .ex06 .cursor{display:inline-block;width:14px;height:34px;background:#7fe89a;vertical-align:-4px;margin-left:6px;}
+  .ex06 .meta{margin-top:26px;font-size:12px;line-height:2;opacity:.75;}
+  .ex06 .meta b{color:#c9ffd8;}
+
+  /* ===== 07 — Brutal ===== */
+  .ex07{background:#ffd23f;}
+  .ex07 .phone{background:#ffd23f;border:6px solid #111;justify-content:center;padding:24px;}
+  .ex07 .fig{font-size:88px;font-weight:900;letter-spacing:-.05em;color:#111;line-height:.85;}
+  .ex07 .lbl{margin-top:18px;display:inline-block;background:#111;color:#ffd23f;
+    font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:6px 12px;}
+  .ex07 .sub{margin-top:20px;font-size:14px;font-weight:700;color:#111;border-top:4px solid #111;padding-top:14px;}
+
+  /* ===== 08 — Calendar grid ===== */
+  .ex08{background:#f2efe9;}
+  .ex08 .phone{background:#fff;padding:24px;color:#26251f;}
+  .ex08 .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;}
+  .ex08 .top .fig{font-size:26px;font-weight:800;}
+  .ex08 .top .lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#9b9686;}
+  .ex08 .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+  .ex08 .d{aspect-ratio:1;border-radius:6px;background:#f1efe6;font-size:9px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;color:#b6b0a0;}
+  .ex08 .d.done{background:#dfe7db;color:#5c7857;}
+  .ex08 .d.miss{background:#f3ddd2;color:#a85c3f;}
+  .ex08 .d.now{background:#26251f;color:#fff;}
+
+  /* ===== 09 — Newsprint ===== */
+  .ex09{background:#e9e6db;}
+  .ex09 .phone{background:#f6f3ea;padding:28px 24px;color:#1c1a15;}
+  .ex09 .masthead{display:flex;justify-content:space-between;border-bottom:3px solid #1c1a15;
+    padding-bottom:10px;margin-bottom:22px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;}
+  .ex09 .fig{font-size:58px;font-weight:800;letter-spacing:-.03em;line-height:1;}
+  .ex09 .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#6b6555;margin-top:8px;}
+  .ex09 .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px;
+    border-top:1px solid #1c1a15;padding-top:16px;}
+  .ex09 .cols .num{font-size:18px;font-weight:800;}
+  .ex09 .cols .lbl{font-size:9px;color:#6b6555;letter-spacing:.08em;text-transform:uppercase;}
+
+  /* ===== 10 — Thermometer ===== */
+  .ex10{background:#e5efe9;}
+  .ex10 .phone{background:#fff;padding:30px 26px;display:flex;gap:26px;align-items:flex-end;}
+  .ex10 .gauge{width:34px;height:100%;background:#eef2ef;border-radius:20px;position:relative;overflow:hidden;flex:0 0 auto;}
+  .ex10 .gauge .fill{position:absolute;bottom:0;left:0;right:0;height:58%;background:#3f6d52;border-radius:20px;}
+  .ex10 .side{display:flex;flex-direction:column;justify-content:flex-end;gap:22px;padding-bottom:6px;}
+  .ex10 .side .fig{font-size:42px;font-weight:800;color:#1c2a20;letter-spacing:-.02em;}
+  .ex10 .side .lbl{font-size:11px;color:#7a887e;letter-spacing:.08em;text-transform:uppercase;margin-top:4px;}
+  .ex10 .side .small{font-size:13px;font-weight:700;color:#3f6d52;}
+
+  /* ===== 11 — Ticker strip ===== */
+  .ex11{background:#141414;}
+  .ex11 .phone{background:#1b1b1b;color:#eee;justify-content:center;padding:0 22px;}
+  .ex11 .stat{padding:22px 0;border-bottom:1px solid #2c2c2c;}
+  .ex11 .stat:last-child{border-bottom:none;}
+  .ex11 .stat .lbl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#8a8a8a;}
+  .ex11 .stat .fig{font-size:20px;font-weight:700;margin-top:6px;}
+  .ex11 .stat.hero .fig{font-size:46px;font-weight:800;letter-spacing:-.02em;}
+
+  /* ===== 12 — Notebook ===== */
+  .ex12{background:#e7e2d3;}
+  .ex12 .phone{background:repeating-linear-gradient(#fdfaf2 0 33px,#e4dcc4 33px 34px);
+    padding:30px 24px 24px;color:#2b2617;}
+  .ex12 .sticky{position:absolute;top:26px;right:22px;background:#ffe58a;color:#4a3c10;
+    font-size:10px;font-weight:700;padding:8px 10px;transform:rotate(4deg);
+    box-shadow:0 6px 12px rgba(0,0,0,.15);}
+  .ex12 .fig{font-size:50px;font-weight:800;letter-spacing:-.03em;margin-top:22px;}
+  .ex12 .lbl{font-size:11px;color:#6b6142;letter-spacing:.06em;margin-top:6px;}
+  .ex12 .list{margin-top:34px;display:flex;flex-direction:column;gap:11px;font-size:13px;}
+  .ex12 .list span:last-child{float:right;font-weight:700;}
+
+  /* ===== 13 — Neumorphic playful ===== */
+  .ex13{background:#efe7ec;}
+  .ex13 .phone{background:#f3ecf0;align-items:center;justify-content:center;gap:18px;}
+  .ex13 .pill{width:220px;height:220px;border-radius:50%;background:#f3ecf0;
+    box-shadow:16px 16px 32px #d9cfd5, -16px -16px 32px #ffffff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+  .ex13 .pill .fig{font-size:40px;font-weight:800;color:#6d4f65;letter-spacing:-.02em;}
+  .ex13 .pill .lbl{font-size:10px;color:#a688a0;letter-spacing:.1em;text-transform:uppercase;}
+  .ex13 .dot{width:9px;height:9px;border-radius:50%;background:#d98fae;}
+  .ex13 .chip{font-size:11px;color:#8a6c84;font-weight:600;}
+
+  /* ===== 14 — Riso duotone ===== */
+  .ex14{background:#fef4e6;}
+  .ex14 .phone{background:#fef4e6;position:relative;justify-content:center;overflow:hidden;}
+  .ex14 .blob{position:absolute;width:260px;height:260px;border-radius:50%;mix-blend-mode:multiply;}
+  .ex14 .b1{background:#ff6b57;opacity:.55;top:-60px;left:-70px;}
+  .ex14 .b2{background:#1f6fd6;opacity:.5;bottom:-80px;right:-60px;}
+  .ex14 .content{position:relative;z-index:2;text-align:center;}
+  .ex14 .fig{font-size:64px;font-weight:900;letter-spacing:-.04em;color:#1c1a17;}
+  .ex14 .lbl{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#1c1a17;margin-top:10px;}
+
+  /* ===== 15 — Swiss grid ===== */
+  .ex15{background:#f5f5f3;}
+  .ex15 .phone{background:#fff;padding:0;}
+  .ex15 .rule{position:absolute;background:#e42313;}
+  .ex15 .r1{top:0;left:64px;width:2px;height:100%;}
+  .ex15 .r2{top:170px;left:0;width:100%;height:2px;}
+  .ex15 .grid{position:relative;height:100%;padding:24px 24px 24px 84px;display:flex;flex-direction:column;justify-content:center;gap:28px;}
+  .ex15 .fig{font-size:54px;font-weight:800;letter-spacing:-.03em;color:#111;}
+  .ex15 .lbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#111;}
+  .ex15 .row{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#333;
+    border-top:1px solid #ddd;padding-top:10px;}
+
+  /* ===== 16 — Atmospheric glow ===== */
+  .ex16{background:#07080d;}
+  .ex16 .phone{background:radial-gradient(circle at 50% 30%,#1c2340 0%,#07080d 70%);
+    align-items:center;justify-content:center;position:relative;overflow:hidden;}
+  .ex16 .glow{position:absolute;width:260px;height:260px;border-radius:50%;
+    background:#5b7cff;filter:blur(70px);opacity:.45;}
+  .ex16 .content{position:relative;text-align:center;}
+  .ex16 .fig{font-size:60px;font-weight:700;letter-spacing:-.03em;color:#fff;}
+  .ex16 .lbl{font-size:11px;color:#9aa4d6;letter-spacing:.16em;text-transform:uppercase;margin-top:10px;}
+  .ex16 .rule{width:40px;height:1px;background:#3c4470;margin:22px auto 0;}
+  .ex16 .sub{margin-top:18px;font-size:11px;color:#7078a8;letter-spacing:.05em;}
+
+  /* ===== 17 — Carousel peek ===== */
+  .ex17{background:#ece7e0;}
+  .ex17 .phone{background:transparent;box-shadow:none;overflow:visible;align-items:center;justify-content:center;}
+  .ex17 .track{position:relative;width:100%;height:420px;display:flex;align-items:center;justify-content:center;}
+  .ex17 .card{position:absolute;width:210px;height:340px;border-radius:22px;background:#fff;
+    box-shadow:0 20px 40px -18px rgba(0,0,0,.35);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;}
+  .ex17 .card.side{transform:scale(.82);opacity:.5;}
+  .ex17 .card.l{left:8px;}
+  .ex17 .card.r{right:8px;}
+  .ex17 .card.mid{background:#2c3b2d;color:#f0f3ee;z-index:2;}
+  .ex17 .card .fig{font-size:32px;font-weight:800;}
+  .ex17 .card .lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.6;}
+  .ex17 .dots{position:absolute;bottom:-30px;display:flex;gap:6px;}
+  .ex17 .dots span{width:6px;height:6px;border-radius:50%;background:#c9c2b4;}
+  .ex17 .dots span.on{background:#2c3b2d;}
+
+  /* ===== 18 — Financial standard ===== */
+  .ex18{background:#eef1f6;}
+  .ex18 .phone{background:#fff;padding:26px 22px;color:#151a24;}
+  .ex18 .month{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#8890a0;}
+  .ex18 .card{margin-top:14px;background:#151a24;color:#fff;border-radius:18px;padding:22px;}
+  .ex18 .card .lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.55;}
+  .ex18 .card .fig{font-size:40px;font-weight:800;margin-top:8px;letter-spacing:-.02em;}
+  .ex18 .stats{display:flex;gap:10px;margin-top:16px;}
+  .ex18 .stat{flex:1;background:#f4f5f8;border-radius:14px;padding:14px;}
+  .ex18 .stat .lbl{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#8890a0;}
+  .ex18 .stat .fig{font-size:16px;font-weight:700;margin-top:6px;}
+
+  /* ===== 19 — Marquee texture ===== */
+  .ex19{background:#111;}
+  .ex19 .phone{background:#111;color:#fff;justify-content:center;position:relative;overflow:hidden;}
+  .ex19 .marquee{position:absolute;left:0;right:0;white-space:nowrap;font-size:15px;font-weight:800;
+    letter-spacing:.02em;color:#232323;-webkit-text-stroke:1px #2c2c2c;}
+  .ex19 .m1{top:14%;}
+  .ex19 .m2{top:82%;}
+  .ex19 .content{position:relative;text-align:center;z-index:2;}
+  .ex19 .fig{font-size:72px;font-weight:900;letter-spacing:-.04em;}
+  .ex19 .lbl{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#9a9a9a;margin-top:10px;}
+
+  /* ===== 20 — Whisper ===== */
+  .ex20{background:#fbfbfa;}
+  .ex20 .phone{background:#fff;align-items:center;justify-content:center;gap:18px;box-shadow:none;border:1px solid #edece8;}
+  .ex20 .fig{font-size:34px;font-weight:500;color:#3a3a36;letter-spacing:-.01em;}
+  .ex20 .rule{width:24px;height:1px;background:#dcdad2;}
+  .ex20 .lbl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#b7b4a9;}
+</style>
+</head>
+<body>
+
+<div class="rail">gurgenBudget · dashboard · 20 first looks</div>
+
+<!-- 01 -->
+<section class="exhibit ex01" id="ex01">
+  <span class="tag">01/20 — numeral</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="fig num">₺284</div>
+    <div class="lbl">today</div>
+  </div></div>
+</section>
+
+<!-- 02 -->
+<section class="exhibit ex02" id="ex02">
+  <span class="tag">02/20 — ledger</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="head">August · receipt</div>
+    <div class="row"><span>Surplus</span><span class="num">₺6,850</span></div>
+    <div class="row"><span>Wishlist</span><span class="num">−₺2,400</span></div>
+    <div class="row"><span>Buffer</span><span class="num">−₺150</span></div>
+    <div class="row"><span>Days left</span><span class="num">13</span></div>
+    <div class="foot"><span class="lbl">Today</span><span class="num">₺284</span></div>
+  </div></div>
+</section>
+
+<!-- 03 -->
+<section class="exhibit ex03" id="ex03">
+  <span class="tag">03/20 — ring</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="ringwrap">
+      <svg viewBox="0 0 220 220"><circle class="track" cx="110" cy="110" r="54" style="stroke-width:10;transform-origin:center;transform:scale(2)"/><circle class="fill" cx="110" cy="110" r="54" style="transform-origin:center;transform:scale(2)"/></svg>
+      <div class="center"><div class="fig num">₺284</div><div class="lbl">today</div></div>
+    </div>
+    <div class="day">day 18 of 31</div>
+  </div></div>
+</section>
+
+<!-- 04 -->
+<section class="exhibit ex04" id="ex04">
+  <span class="tag">04/20 — bento</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="cell c1"><span class="lbl">today</span><span class="fig num">₺284</span></div>
+    <div class="cell c2"><span class="lbl">surplus</span><span class="fig num">₺6,850</span></div>
+    <div class="cell c3"><span class="lbl">day</span><span class="fig num">18/31</span></div>
+    <div class="cell c4"><span class="lbl">wishlist</span><span class="fig num">₺2,400</span></div>
+    <div class="cell c5"><span class="lbl">unlogged</span><span class="fig num">2</span></div>
+  </div></div>
+</section>
+
+<!-- 05 -->
+<section class="exhibit ex05" id="ex05">
+  <span class="tag">05/20 — split band</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="band">
+      <div class="lbl">today's allowance</div>
+      <div class="fig num">₺284</div>
+    </div>
+    <div class="sheet">
+      <div class="line"><span class="lbl">Surplus</span><span class="num">₺6,850</span></div>
+      <div class="line"><span class="lbl">Wishlist</span><span class="num">₺2,400</span></div>
+      <div class="line"><span class="lbl">Day</span><span class="num">18 / 31</span></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 06 -->
+<section class="exhibit ex06" id="ex06">
+  <span class="tag">06/20 — terminal</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="prompt">~/budget $ allowance --today</div>
+    <div class="fig num">₺284<span class="cursor"></span></div>
+    <div class="meta">
+      surplus <b class="num">₺6,850</b><br>
+      day <b>18/31</b><br>
+      unlogged <b>2</b>
+    </div>
+  </div></div>
+</section>
+
+<!-- 07 -->
+<section class="exhibit ex07" id="ex07">
+  <span class="tag">07/20 — brutal</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="fig num">₺284</div>
+    <div class="lbl">today's cap</div>
+    <div class="sub">surplus ₺6,850 · day 18/31</div>
+  </div></div>
+</section>
+
+<!-- 08 -->
+<section class="exhibit ex08" id="ex08">
+  <span class="tag">08/20 — calendar</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="top"><span class="fig num">₺284</span><span class="lbl">today</span></div>
+    <div class="grid" id="calgrid"></div>
+  </div></div>
+</section>
+
+<!-- 09 -->
+<section class="exhibit ex09" id="ex09">
+  <span class="tag">09/20 — newsprint</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="masthead"><span>gurgenBudget</span><span>Aug 18</span></div>
+    <div class="fig num">₺284</div>
+    <div class="lbl">today's allowance</div>
+    <div class="cols">
+      <div><div class="num">₺6,850</div><div class="lbl">Surplus</div></div>
+      <div><div class="num">18/31</div><div class="lbl">Day</div></div>
+      <div><div class="num">₺2,400</div><div class="lbl">Wishlist</div></div>
+      <div><div class="num">2</div><div class="lbl">Unlogged</div></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 10 -->
+<section class="exhibit ex10" id="ex10">
+  <span class="tag">10/20 — thermometer</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="gauge"><div class="fill"></div></div>
+    <div class="side">
+      <div><div class="fig num">₺284</div><div class="lbl">today</div></div>
+      <div class="small num">₺6,850 surplus</div>
+      <div class="small">day 18 of 31</div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 11 -->
+<section class="exhibit ex11" id="ex11">
+  <span class="tag">11/20 — ticker</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="stat hero"><div class="lbl">today</div><div class="fig num">₺284</div></div>
+    <div class="stat"><div class="lbl">surplus</div><div class="fig num">₺6,850</div></div>
+    <div class="stat"><div class="lbl">day</div><div class="fig num">18 / 31</div></div>
+  </div></div>
+</section>
+
+<!-- 12 -->
+<section class="exhibit ex12" id="ex12">
+  <span class="tag">12/20 — notebook</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="sticky">2 unlogged</div>
+    <div class="fig num">₺284</div>
+    <div class="lbl">today's allowance</div>
+    <div class="list">
+      <div><span>Surplus</span><span class="num">₺6,850</span></div>
+      <div><span>Wishlist</span><span class="num">₺2,400</span></div>
+      <div><span>Day</span><span class="num">18/31</span></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 13 -->
+<section class="exhibit ex13" id="ex13">
+  <span class="tag">13/20 — soft</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="pill"><span class="dot"></span><span class="fig num">₺284</span><span class="lbl">today</span></div>
+    <div class="chip">₺6,850 surplus · day 18/31</div>
+  </div></div>
+</section>
+
+<!-- 14 -->
+<section class="exhibit ex14" id="ex14">
+  <span class="tag">14/20 — riso</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="blob b1"></div><div class="blob b2"></div>
+    <div class="content"><div class="fig num">₺284</div><div class="lbl">today · day 18/31</div></div>
+  </div></div>
+</section>
+
+<!-- 15 -->
+<section class="exhibit ex15" id="ex15">
+  <span class="tag">15/20 — swiss</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="rule r1"></div><div class="rule r2"></div>
+    <div class="grid">
+      <div><div class="lbl">today</div><div class="fig num">₺284</div></div>
+      <div class="row"><span>Surplus</span><span class="num">₺6,850</span></div>
+      <div class="row"><span>Day</span><span class="num">18 / 31</span></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 16 -->
+<section class="exhibit ex16" id="ex16">
+  <span class="tag">16/20 — atmospheric</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="glow"></div>
+    <div class="content">
+      <div class="fig num">₺284</div>
+      <div class="lbl">today</div>
+      <div class="rule"></div>
+      <div class="sub">₺6,850 surplus · day 18/31</div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 17 -->
+<section class="exhibit ex17" id="ex17">
+  <span class="tag">17/20 — carousel</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="track">
+      <div class="card side l"><div class="fig num">₺6,850</div><div class="lbl">surplus</div></div>
+      <div class="card mid"><div class="fig num">₺284</div><div class="lbl">today</div></div>
+      <div class="card side r"><div class="fig num">₺2,400</div><div class="lbl">wishlist</div></div>
+      <div class="dots"><span class="on"></span><span></span><span></span></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 18 -->
+<section class="exhibit ex18" id="ex18">
+  <span class="tag">18/20 — standard</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="month">August · day 18</div>
+    <div class="card"><div class="lbl">today's allowance</div><div class="fig num">₺284</div></div>
+    <div class="stats">
+      <div class="stat"><div class="lbl">surplus</div><div class="fig num">₺6,850</div></div>
+      <div class="stat"><div class="lbl">wishlist</div><div class="fig num">₺2,400</div></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 19 -->
+<section class="exhibit ex19" id="ex19">
+  <span class="tag">19/20 — marquee</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="marquee m1">SPEND · SAVE · SPEND · SAVE · SPEND · SAVE ·</div>
+    <div class="marquee m2">DAY 18 · DAY 18 · DAY 18 · DAY 18 · DAY 18 ·</div>
+    <div class="content"><div class="fig num">₺284</div><div class="lbl">today</div></div>
+  </div></div>
+</section>
+
+<!-- 20 -->
+<section class="exhibit ex20" id="ex20">
+  <span class="tag">20/20 — whisper</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="fig num">₺284</div>
+    <div class="rule"></div>
+    <div class="lbl">today</div>
+  </div></div>
+</section>
+
+<script>
+  // ex08 calendar grid — 31 days, day 18 current, 16/17 unlogged
+  (function(){
+    var grid = document.getElementById('calgrid');
+    for (var d = 1; d <= 31; d++) {
+      var el = document.createElement('div');
+      el.className = 'd';
+      el.textContent = d;
+      if (d === 18) el.className += ' now';
+      else if (d === 16 || d === 17) el.className += ' miss';
+      else if (d < 18) el.className += ' done';
+      grid.appendChild(el);
+    }
+  })();
+</script>
+</body>
+</html>
