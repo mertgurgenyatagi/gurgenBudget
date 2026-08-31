@@ -182,7 +182,7 @@ History is not on the ring: month changing lives in the Calendar and the remaind
 | `--accent` | `oklch(45% .11 139)` | deep moss/olive accent |
 | `--short` | `oklch(53% .12 41)` | warning/over-budget (warm rust) |
 | `--onink` | `oklch(95% .013 127)` | text on dark band |
-| `--backdrop` | `oklch(70% .008 127)` | the darker gray ground the ring's cards float over |
+| `--backdrop` | `oklch(18% .006 127)` | the very dark gray ground the ring's cards float over |
 
 ### Dark hero band (re-pitched)
 
@@ -266,3 +266,5 @@ Supporting changes: **Inter** is now loaded as the app's typeface (every picked 
 - **History** got the design it never had an Exhibop for: a small month stepper, a Surplus/Allowance/Money Saved summary, then the four category breakdowns and the Wishlist list for whichever month is selected — reusing the same components the ring screens use (`CategoryBars`, `WishlistBody`), not a separate design. Still capped from stepping into the future, same as the Calendar.
 
 That work is merged into `main`.
+
+The ring's backdrop went darker still — `--backdrop` is now a very dark gray (`oklch(18% .006 127)`, low enough chroma to read as neutral gray rather than tinted), distinct from `--ink`'s mossier near-black so the Dashboard's ink-toned card still stands apart from the ground behind it.

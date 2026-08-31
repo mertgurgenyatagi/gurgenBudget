@@ -13,7 +13,7 @@
   --onink: oklch(95% .013 127);
   /* The ground the ring's cards sit on — deliberately darker than the
      paper cards so each screen reads as a card floating over it. */
-  --backdrop: oklch(70% .008 127);
+  --backdrop: oklch(18% .006 127);
 
   /* Dark hero band (re-pitched) */
   --b-muted: oklch(72% .028 132);
