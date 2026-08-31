@@ -1,7 +1,8 @@
 import { MonthSetupScreen } from './pages/MonthSetupScreen'
-
-const ITEMS = [{ name: 'Salary', amount: 45000 }]
+import { currentMonth } from '../lib/time'
 
 export function BaseIncome() {
-  return <MonthSetupScreen label="Base income" items={ITEMS} kind="income" />
+  return (
+    <MonthSetupScreen category="baseIncome" label="Base income" kind="income" month={currentMonth()} />
+  )
 }

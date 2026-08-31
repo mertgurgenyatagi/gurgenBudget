@@ -321,13 +321,13 @@ html, body {
   padding: 22px 20px;
 }
 
-.ms .fig {
+.bars .fig {
   font-size: 30px;
   font-weight: 800;
   letter-spacing: -.02em;
 }
 
-.ms .lbl {
+.bars .lbl {
   font-size: 10px;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -335,11 +335,12 @@ html, body {
   margin-bottom: 18px;
 }
 
-.ms .bar {
+.bars .bar {
   margin: 12px 0;
+  cursor: pointer;
 }
 
-.ms .bar .top {
+.bars .bar .top {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -347,32 +348,132 @@ html, body {
   margin-bottom: 5px;
 }
 
-.ms .bar .top .n {
+.bars .bar .top .n {
   color: var(--muted);
 }
 
-.ms .bar .top .num {
+.bars .bar .top .num {
   font-weight: 700;
 }
 
-.ms .bar .track {
+.bars .bar .track {
   height: 7px;
   border-radius: 4px;
   background: var(--track);
   overflow: hidden;
 }
 
-.ms .bar .fill {
+.bars .bar .fill {
   height: 100%;
   border-radius: 4px;
 }
 
-.ms .add {
+.bars .add {
   margin-top: 12px;
   font-size: 12px;
   font-weight: 700;
   color: var(--muted);
   text-align: center;
+  cursor: pointer;
+}
+
+/* ===== Two-option pill toggle — shared by ItemSheet's category toggle
+   and Settings' Buffer mode toggle ===== */
+.toggle2 {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0;
+}
+
+.toggle2 button {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  cursor: pointer;
+}
+
+.toggle2 button.active {
+  background: var(--ink);
+  color: var(--onink);
+  border-color: var(--ink);
+}
+
+/* ===== Item sheet ===== */
+.sheet-scrim {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in oklch, var(--ink) 55%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 10;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 320px;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 20px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, .5);
+}
+
+.sheet input[type='text'] {
+  font: inherit;
+  font-size: 15px;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.sheet-purchased {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.sheet-actions button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sheet-save {
+  border: none;
+  background: var(--ink);
+  color: var(--onink);
+}
+
+.sheet-delete {
+  border: 1px solid var(--short);
+  background: var(--paper);
+  color: var(--short);
 }
 
 .save-error {

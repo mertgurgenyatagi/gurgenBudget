@@ -1,0 +1,102 @@
+import { useState } from 'react'
+import { useData } from '../../data/DataContext'
+import type { Category, Item } from '../../lib/formulas'
+import type { MonthKey } from '../../lib/time'
+
+type ItemSheetProps = {
+  category: Category
+  /** null means "adding a new item"; otherwise the item being edited. */
+  item: Item | null
+  month: MonthKey
+  onClose: () => void
+}
+
+const MOVABLE: Category[] = ['flexSpend', 'wishlist']
+
+// Shared by Base/Flex Income, Base/Flex Spend, Wishlist, and History — one
+// sheet, opened by "+ Add" or by tapping an existing row. Flex Spend and
+// Wishlist additionally get the category toggle they share (PROJECT.md:
+// "share one add entry point with a toggle"), and a Purchased checkbox
+// while the item is currently in Wishlist.
+export function ItemSheet({ category, item, month, onClose }: ItemSheetProps) {
+  const { addItem, editItem, deleteItem, moveItem, setPurchased } = useData()
+  const [name, setName] = useState(item?.name ?? '')
+  const [amount, setAmount] = useState(item ? String(item.amount) : '')
+  const [cat, setCat] = useState<Category>(item?.category ?? category)
+  const [purchased, setPurchasedDraft] = useState(item?.purchased ?? false)
+
+  const canToggle = MOVABLE.includes(category)
+
+  function handleSave() {
+    const amt = Math.round(Number(amount)) || 0
+    if (item === null) {
+      addItem({ category: cat, name, amount: amt, month })
+    } else {
+      if (cat !== item.category) moveItem(item, cat)
+      editItem(item, { name, amount: amt }, month)
+      if (cat === 'wishlist' && purchased !== item.purchased) setPurchased(item, purchased)
+    }
+    onClose()
+  }
+
+  function handleDelete() {
+    if (item !== null) deleteItem(item, month)
+    onClose()
+  }
+
+  return (
+    <div className="sheet-scrim" onClick={onClose}>
+      <div className="sheet" onClick={(e) => e.stopPropagation()}>
+        <input
+          className="sheet-name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Name"
+          autoFocus
+        />
+        <input
+          className="sheet-amount"
+          type="text"
+          inputMode="numeric"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="Amount"
+        />
+        {canToggle && (
+          <div className="toggle2">
+            <button
+              className={cat === 'flexSpend' ? 'active' : ''}
+              onClick={() => setCat('flexSpend')}
+            >
+              Flex Spend
+            </button>
+            <button className={cat === 'wishlist' ? 'active' : ''} onClick={() => setCat('wishlist')}>
+              Wishlist
+            </button>
+          </div>
+        )}
+        {cat === 'wishlist' && (
+          <label className="sheet-purchased">
+            <input
+              type="checkbox"
+              checked={purchased}
+              onChange={(e) => setPurchasedDraft(e.target.checked)}
+            />
+            Purchased
+          </label>
+        )}
+        <div className="sheet-actions">
+          {item !== null && (
+            <button className="sheet-delete" onClick={handleDelete}>
+              Delete
+            </button>
+          )}
+          <button className="sheet-save" onClick={handleSave}>
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

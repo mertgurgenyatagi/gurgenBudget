@@ -1,10 +1,8 @@
 import { MonthSetupScreen } from './pages/MonthSetupScreen'
-
-const ITEMS = [
-  { name: 'Car wash', amount: 350 },
-  { name: 'Vet visit', amount: 900 },
-]
+import { currentMonth } from '../lib/time'
 
 export function FlexSpend() {
-  return <MonthSetupScreen label="Flex spend" items={ITEMS} kind="spend" />
+  return (
+    <MonthSetupScreen category="flexSpend" label="Flex spend" kind="spend" month={currentMonth()} />
+  )
 }
