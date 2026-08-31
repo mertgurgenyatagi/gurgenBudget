@@ -54,12 +54,18 @@ Surplus is the total left over that is free to spend on other things. It may be 
 
 ### Daily Allowance
 
+**Buffer is a percentage, not a flat ₺/day amount** — a deliberate margin of safety expressed as a rate, with a **mode toggle** (in Settings) governing how that rate folds into the formula:
+
 ```
-Daily Allowance = ((Surplus − Wishlist) / days in month) − Buffer
+// mode: "of surplus" — the cut comes off Surplus alone, before Wishlist
+Daily Allowance = (Surplus × (1 − Buffer%) − Wishlist) / days in month
+
+// mode: "of full slice" — the cut comes off the whole daily figure, after Wishlist
+Daily Allowance = ((Surplus − Wishlist) / days in month) × (1 − Buffer%)
 ```
 
 - **days in month** is the calendar length of the month (28–31). The allowance is a flat per-day figure for the whole month, not a value that re-slices across the remaining days.
-- **Buffer** is a single fixed amount, set once, permanent. It is a deliberate margin of safety subtracted from every day. If it is ever changed anyway, the change applies **only going forward** — past months keep the old Buffer, the same as Base item deletion below.
+- **Buffer%** and its **mode** are both set in Settings, and both follow the same forward-only rule: changing either only applies to months from that point on — past months keep whatever `{percent, mode}` was in effect at the time, the same as Base item deletion below. No 0–100 clamp; it accepts anything, like every other numeric field in the app.
 - **Wishlist** here means the sum of whatever is *currently in the Wishlist list*. It changes only when items are added, deleted, or moved to/from Flex Spend. Marking a Wishlist item **purchased does not change this total**.
 - A negative Daily Allowance is allowed and shown as-is.
 
@@ -119,7 +125,8 @@ Money Saved = Surplus − (sum of actual daily logs so far) − (projected spend
 - The projection applies the **Daily Allowance to every remaining day of the month**.
 - Money Saved **resets to a zero basis each month**, computed purely from that month's own Surplus. There is no carry-over from prior months.
 - **Money Saved lives on the Wishlist page** — not a separate screen.
-- **Confirmed: the basis is the full Surplus, not `Surplus − Wishlist`.** This looked like a leftover asymmetry from the old multi-allowance design, but it's actually load-bearing: Money Saved is explicitly *"your currency on the Wishlist playground"* — the balance you spend by marking Wishlist items purchased. Spending exactly the Daily Allowance every day of the month leaves Money Saved sitting at `Wishlist total + (Buffer × days in month)` — precisely enough to buy the entire current Wishlist, plus the month's accumulated Buffer as a bonus cushion. Subtracting the Wishlist from the basis instead would zero out that purchasing power and break the mechanic. No change needed.
+- **Confirmed: the basis is the full Surplus, not `Surplus − Wishlist`.** This looked like a leftover asymmetry from the old multi-allowance design, but it's actually load-bearing: Money Saved is explicitly *"your currency on the Wishlist playground"* — the balance you spend by marking Wishlist items purchased. Subtracting the Wishlist from the basis instead would zero out that purchasing power and break the mechanic. No change needed.
+- Spending exactly the Daily Allowance every day of the month leaves Money Saved sitting at the Wishlist total plus a bonus cushion — precisely enough to buy the entire current Wishlist, plus that cushion. The cushion's size depends on the Buffer mode: `Surplus × Buffer%` under "of surplus", `(Surplus − Wishlist) × Buffer%` under "of full slice". The Money Saved formula itself doesn't change between modes — it's defined purely in terms of Surplus and the Daily Allowance, so it inherits whichever Buffer mode produced that allowance automatically.
 
 ### Marking an item purchased
 
@@ -142,7 +149,7 @@ Not yet designed, but the spec implies at minimum:
 - **Base Income**, **Flex Income**, **Base Spend**, **Flex Spend** — four separate screens (not one combined "Month setup" screen). Items added/edited one at a time. Flex Spend shares its add entry point with Wishlist, via a list toggle.
 - **Wishlist** — the Wishlist list (flat, unordered) and Money Saved together.
 - **History** — past months, still fully editable; each past month shows its own Base/Flex figures *and* its own Wishlist (purchased items crossed out in context). Separated from the current month by display only. **History is not a destination screen.** Its main job — moving between months — belongs to the **Calendar**, whose header steps back and forward through months; browsing a past month is the same grid with that month's days filled in. Whatever else History covers is reached from a **quiet row in Settings**, deliberately a tucked-away afterthought rather than a headline screen. It is not on the swipe ring.
-- **Settings** — a visible, dedicated screen. The Buffer lives here (not edited inline elsewhere), alongside things like sign-out, plus the low-key History entry described above.
+- **Settings** — a visible, dedicated screen. The Buffer (percent + mode toggle) lives here (not edited inline elsewhere), alongside things like sign-out, plus the low-key History entry described above.
 
 ---
 
@@ -249,3 +256,13 @@ The Dashboard ring screen is the first to move past the colored `RingPage` place
 Three follow-up passes on that UI, all merged: the ring's backdrop went to a **darker gray** (`--backdrop`) so the paper cards read as cards floating over a ground rather than paper on paper; **Settings moved on the ring** to sit between Flex Spend and Calendar, one swipe right of Calendar; and **History was dissolved as a destination** — month stepping now lives in the Calendar header (`‹ April ›`), and the leftover History entry is a quiet row at the foot of Settings. `/history` still exists as a route with the old colored placeholder behind it, unlinked and undesigned.
 
 Supporting changes: **Inter** is now loaded as the app's typeface (every picked design was drawn in it), and whole-lira formatting lives in one place (`src/money.ts`) so no screen hand-rolls it. Every figure on every screen is still hardcoded placeholder data — this pass is deliberately UI-only, with no Firestore reads, no formulas, and no interactivity behind the "+ Add", "log", and "Sign out" affordances. **History** is the one screen still on the colored `RingPage` placeholder: it sits off the ring and never had an Exhibop run, so no design has been picked for it yet. That work is merged into `main`.
+
+**Backend wiring is complete**, built on a `backend-wire` branch per the design spec at [docs/superpowers/specs/2026-08-31-backend-wiring-design.md](docs/superpowers/specs/2026-08-31-backend-wiring-design.md) and its implementation plan at [docs/superpowers/plans/2026-08-31-backend-wiring.md](docs/superpowers/plans/2026-08-31-backend-wiring.md). Every hardcoded figure across all eight ring screens and `/history` is now real:
+
+- **Data model** (`src/lib/formulas.ts`, `src/lib/time.ts`) — a single Firestore `items` collection discriminated by category (so moving a Flex Spend item to Wishlist is a one-field update, not a delete-and-recreate), a `days` collection for the daily log, and a `settings/buffer` doc. Retroactive editing, forward-only Base item creation/deletion, and the quiet per-item history all resolve through one `amountInMonth()` function against a fixed UTC+3 clock. Verified by 14 Vitest cases over the pure formula layer — nothing else in the app has test coverage, by design.
+- **Firestore wiring** (`src/data/DataContext.tsx`) — one `DataProvider` with three live `onSnapshot` listeners and every write (`addItem`, `editItem`, `deleteItem`, `moveItem`, `setPurchased`, `logDay`, `setBuffer`); no screen talks to Firestore directly. Write failures surface through a small shared banner rather than each screen inventing its own error handling.
+- **The Buffer** shipped as the percentage-with-a-mode-toggle described above, not the flat ₺/day amount originally spec'd — see [Core Formulas](#core-formulas) and [Wishlist & Money Saved](#wishlist--money-saved) above, both updated to match.
+- **Every screen is interactive now**: a shared item sheet (name, amount, and — for Flex Spend/Wishlist — the category toggle plus a Purchased checkbox) handles add/edit/delete everywhere; the Calendar logs a day inline by tapping its cell and steps between months in its own header; Settings edits the Buffer and actually signs out.
+- **History** got the design it never had an Exhibop for: a small month stepper, a Surplus/Allowance/Money Saved summary, then the four category breakdowns and the Wishlist list for whichever month is selected — reusing the same components the ring screens use (`CategoryBars`, `WishlistBody`), not a separate design. Still capped from stepping into the future, same as the Calendar.
+
+That work is merged into `main`.
