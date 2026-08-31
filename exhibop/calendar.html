@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Calendar Exhibop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --font: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+    /* gurgenBudget canon palette — PROJECT.md § Color Palette. Every color below is one of these.
+       --short is deliberately unused here: Design Principle 5 (no moralising) rules out an
+       over/under-allowance warning treatment on individual logged days. */
+    --paper: oklch(95% .013 127);
+    --ink: oklch(21% .037 134);
+    --muted: oklch(53% .027 131);
+    --rule: oklch(85% .015 127);
+    --track: oklch(89% .016 128);
+    --accent: oklch(45% .11 139);
+    --onink: oklch(95% .013 127);
+    --b-muted: oklch(72% .028 132);
+    --b-rule: oklch(34% .04 133);
+    --b-track: oklch(30% .035 133);
+    --b-logged: oklch(57% .095 141);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-snap-type:y mandatory; scroll-behavior:auto;}
+  body{
+    font-family:var(--font);
+    background:var(--ink);
+    overflow-x:hidden;
+  }
+  .rail{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:50;
+    font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--onink);opacity:.4;font-weight:600;pointer-events:none;}
+
+  .exhibit{
+    height:100vh;width:100%;position:relative;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    scroll-snap-align:start;
+  }
+  .exhibit .tag{position:absolute;top:16px;left:16px;font-size:11px;letter-spacing:.09em;
+    font-weight:700;color:var(--onink);mix-blend-mode:difference;z-index:5;}
+  .exhibit .dismiss{position:absolute;top:12px;right:12px;z-index:5;
+    font-family:inherit;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    padding:7px 12px;border-radius:999px;border:1px solid var(--onink);background:transparent;color:var(--onink);
+    mix-blend-mode:difference;cursor:pointer;}
+  .exhibit .dismiss:hover{background:var(--onink);mix-blend-mode:normal;color:var(--ink);}
+  .stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+
+  .phone{width:336px;height:648px;border-radius:30px;overflow:hidden;position:relative;
+    display:flex;flex-direction:column;box-shadow:0 40px 80px -30px rgba(0,0,0,.5);}
+  .num{font-variant-numeric:tabular-nums;}
+  .month{font-size:9px;letter-spacing:.12em;text-transform:uppercase;}
+
+  /* generic day-grid used by several designs */
+  .g7{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+
+  /* ===== 01 — Classic month grid ===== */
+  .ex01{background:var(--track);}
+  .ex01 .phone{background:var(--paper);color:var(--ink);padding:26px 20px;}
+  .ex01 .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;}
+  .ex01 .head .month{color:var(--muted);}
+  .ex01 .head .allw{font-size:11px;font-weight:800;}
+  .ex01 .cell{aspect-ratio:1;border-radius:8px;background:var(--track);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+  .ex01 .cell .d{font-size:8px;color:var(--muted);}
+  .ex01 .cell .v{font-size:8px;font-weight:700;}
+  .ex01 .cell.logged{background:var(--paper);border:1px solid var(--rule);}
+  .ex01 .cell.unlogged{border:1px dashed var(--accent);color:var(--accent);}
+  .ex01 .cell.today{background:var(--ink);color:var(--onink);}
+  .ex01 .cell.future{opacity:.35;}
+
+  /* ===== 02 — Bar histogram row ===== */
+  .ex02{background:var(--ink);}
+  .ex02 .phone{background:var(--ink);color:var(--onink);padding:30px 24px;justify-content:center;}
+  .ex02 .lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--b-muted);margin-bottom:6px;}
+  .ex02 .fig{font-size:26px;font-weight:800;letter-spacing:-.02em;margin-bottom:22px;}
+  .ex02 .hist{display:flex;align-items:flex-end;gap:2px;height:70px;margin-bottom:14px;}
+  .ex02 .bar{flex:1;background:var(--b-logged);border-radius:2px 2px 0 0;min-height:3px;}
+  .ex02 .bar.unlogged{background:transparent;border:1px dashed var(--b-rule);}
+  .ex02 .bar.future{background:var(--b-track);opacity:.5;}
+  .ex02 .sub{display:flex;justify-content:space-between;font-size:9px;color:var(--b-muted);}
+
+  /* ===== 03 — Heat-tile grid (spend intensity, not judgment) ===== */
+  .ex03{background:var(--track);}
+  .ex03 .phone{background:var(--paper);color:var(--ink);padding:26px 20px;}
+  .ex03 .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .ex03 .cell{aspect-ratio:1;border-radius:6px;}
+  .ex03 .cell.future{background:var(--track);opacity:.4;}
+  .ex03 .cell.unlogged{background:transparent;border:1px dashed var(--rule);}
+  .ex03 .foot{margin-top:16px;display:flex;justify-content:space-between;font-size:10px;color:var(--muted);}
+
+  /* ===== 04 — Week rows ===== */
+  .ex04{background:var(--track);}
+  .ex04 .phone{background:var(--paper);color:var(--ink);padding:26px 22px;}
+  .ex04 .head{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .ex04 .week{background:var(--track);border-radius:12px;padding:11px 13px;margin-bottom:8px;}
+  .ex04 .week .top{display:flex;justify-content:space-between;font-size:10px;font-weight:800;margin-bottom:8px;}
+  .ex04 .week .days{display:flex;gap:4px;}
+  .ex04 .week .d{flex:1;aspect-ratio:1;border-radius:5px;background:var(--paper);}
+  .ex04 .week .d.unlogged{border:1px dashed var(--accent);}
+  .ex04 .week .d.future{opacity:.3;}
+
+  /* ===== 05 — Numeral wall ===== */
+  .ex05{background:var(--ink);}
+  .ex05 .phone{background:var(--ink);color:var(--onink);padding:26px 20px;}
+  .ex05 .lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--b-muted);margin-bottom:14px;}
+  .ex05 .cell{aspect-ratio:1;border-radius:7px;background:var(--b-track);display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ex05 .cell .v{font-size:9px;font-weight:800;}
+  .ex05 .cell .d{font-size:7px;color:var(--b-muted);margin-top:1px;}
+  .ex05 .cell.unlogged{background:transparent;border:1px dashed var(--b-rule);color:var(--b-muted);font-size:8px;}
+  .ex05 .cell.future{opacity:.3;}
+
+  /* ===== 06 — Dot-matrix ===== */
+  .ex06{background:var(--track);}
+  .ex06 .phone{background:var(--paper);color:var(--ink);padding:28px 24px;justify-content:center;}
+  .ex06 .fig{font-size:24px;font-weight:800;margin-bottom:18px;}
+  .ex06 .cell{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .ex06 .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);}
+  .ex06 .cell.unlogged .dot{background:transparent;border:1.5px solid var(--accent);}
+  .ex06 .cell.future .dot{background:var(--rule);}
+  .ex06 .cell .v{font-size:6px;color:var(--muted);}
+
+  /* ===== 07 — Vertical strip (receipt tape) ===== */
+  .ex07{background:var(--track);}
+  .ex07 .phone{background:var(--paper);color:var(--ink);padding:26px 22px;overflow-y:auto;
+    clip-path:polygon(0 0,100% 0,100% 98%,95% 100%,90% 98%,85% 100%,80% 98%,75% 100%,70% 98%,65% 100%,60% 98%,55% 100%,50% 98%,45% 100%,40% 98%,35% 100%,30% 98%,25% 100%,20% 98%,15% 100%,10% 98%,5% 100%,0 98%);}
+  .ex07 .head{text-align:center;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+  .ex07 .row{display:flex;justify-content:space-between;font-size:10px;padding:5px 0;border-top:1px dotted var(--rule);}
+  .ex07 .row.unlogged{color:var(--accent);font-weight:700;}
+  .ex07 .row.future{color:var(--rule);}
+
+  /* ===== 08 — Two-tone board ===== */
+  .ex08{background:var(--track);}
+  .ex08 .phone{background:var(--paper);color:var(--ink);padding:26px 20px;}
+  .ex08 .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .ex08 .cell{aspect-ratio:1;border-radius:7px;background:var(--ink);color:var(--onink);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;}
+  .ex08 .cell.unlogged{background:var(--paper);border:1.5px dashed var(--ink);color:var(--ink);}
+  .ex08 .cell.future{background:var(--track);color:transparent;}
+
+  /* ===== 09 — Ledger table ===== */
+  .ex09{background:var(--track);}
+  .ex09 .phone{background:var(--paper);color:var(--ink);padding:24px 0;}
+  .ex09 .head{padding:0 22px 12px;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--ink);margin-bottom:8px;}
+  .ex09 .wk{padding:6px 22px;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--track);}
+  .ex09 .row{display:flex;padding:6px 22px;font-size:10px;border-bottom:1px solid var(--rule);}
+  .ex09 .row .n{flex:1;}
+  .ex09 .row.unlogged .num{color:var(--accent);font-weight:700;}
+  .ex09 .row.future{color:var(--rule);}
+
+  /* ===== 10 — Progress rings per week ===== */
+  .ex10{background:var(--ink);}
+  .ex10 .phone{background:var(--ink);color:var(--onink);padding:28px 22px;}
+  .ex10 .rings{display:flex;justify-content:space-between;margin-bottom:22px;}
+  .ex10 .ring{width:46px;height:46px;border-radius:50%;background:conic-gradient(var(--b-logged) var(--p,70%),var(--b-track) 0);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;}
+  .ex10 .ring::after{content:'';width:34px;height:34px;border-radius:50%;background:var(--ink);position:absolute;}
+  .ex10 .ring span{z-index:1;}
+  .ex10 .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--b-muted);margin-bottom:10px;}
+  .ex10 .row{display:flex;justify-content:space-between;font-size:11px;padding:8px 0;border-bottom:1px solid var(--b-rule);color:var(--b-muted);}
+  .ex10 .row .num{color:var(--onink);font-weight:700;}
+
+  /* ===== 11 — Badge grid ===== */
+  .ex11{background:var(--track);}
+  .ex11 .phone{background:var(--paper);color:var(--ink);padding:26px 20px;}
+  .ex11 .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .ex11 .cell{aspect-ratio:1;border-radius:8px;border:1.5px solid var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ex11 .cell .d{font-size:7px;color:var(--muted);}
+  .ex11 .cell .v{font-size:7px;font-weight:800;}
+  .ex11 .cell.unlogged{border-style:dashed;}
+  .ex11 .cell.future{border-color:var(--rule);opacity:.4;}
+
+  /* ===== 12 — Capsule row grid ===== */
+  .ex12{background:var(--track);}
+  .ex12 .phone{background:var(--paper);color:var(--ink);padding:26px 20px;}
+  .ex12 .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .ex12 .wrap{display:flex;flex-wrap:wrap;gap:5px;}
+  .ex12 .cap{background:var(--track);border-radius:999px;padding:5px 8px;font-size:8px;display:flex;gap:4px;font-weight:600;}
+  .ex12 .cap.unlogged{background:var(--ink);color:var(--onink);}
+  .ex12 .cap.future{opacity:.35;}
+
+  /* ===== 13 — Marker underline grid ===== */
+  .ex13{background:var(--track);}
+  .ex13 .phone{background:var(--paper);color:var(--ink);padding:26px 20px;}
+  .ex13 .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .ex13 .cell{padding:4px 0 6px;border-bottom:2px solid var(--accent);text-align:center;}
+  .ex13 .cell .d{font-size:8px;color:var(--muted);}
+  .ex13 .cell .v{font-size:7px;font-weight:800;}
+  .ex13 .cell.unlogged{border-bottom-style:dashed;}
+  .ex13 .cell.future{border-color:var(--rule);opacity:.4;}
+
+  /* ===== 14 — Meter timeline ===== */
+  .ex14{background:var(--ink);}
+  .ex14 .phone{background:var(--ink);color:var(--onink);padding:30px 24px;justify-content:center;}
+  .ex14 .lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--b-muted);margin-bottom:14px;}
+  .ex14 .meter{height:6px;border-radius:3px;background:var(--b-track);position:relative;margin-bottom:22px;}
+  .ex14 .tick{position:absolute;top:-2px;width:2px;height:10px;background:var(--b-logged);}
+  .ex14 .tick.unlogged{background:transparent;border:1px solid var(--onink);}
+  .ex14 .tick.future{background:var(--b-track);}
+  .ex14 .cuehead{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--b-muted);margin-bottom:8px;}
+  .ex14 .row{display:flex;justify-content:space-between;font-size:11px;padding:7px 0;border-bottom:1px solid var(--b-rule);}
+
+  /* ===== 15 — Catch-up stack ===== */
+  .ex15{background:var(--track);}
+  .ex15 .phone{background:var(--paper);color:var(--ink);padding:26px 22px;}
+  .ex15 .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;}
+  .ex15 .head .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .ex15 .head .n{font-size:11px;font-weight:800;color:var(--accent);}
+  .ex15 .card{background:var(--track);border-radius:12px;padding:12px 14px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;}
+  .ex15 .card .d{font-size:11px;font-weight:700;}
+  .ex15 .card .input{font-size:11px;color:var(--muted);border:1px dashed var(--rule);border-radius:8px;padding:6px 10px;}
+
+  /* ===== 16 — Single-day hero prompt ===== */
+  .ex16{background:var(--ink);}
+  .ex16 .phone{background:var(--ink);color:var(--onink);align-items:center;justify-content:center;padding:30px 24px;}
+  .ex16 .lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--b-muted);}
+  .ex16 .d{font-size:20px;font-weight:800;margin:6px 0 22px;}
+  .ex16 .field{width:100%;border:1px dashed var(--b-rule);border-radius:16px;padding:22px;text-align:center;font-size:13px;color:var(--b-muted);margin-bottom:20px;}
+  .ex16 .dots{display:flex;gap:6px;}
+  .ex16 .dots span{width:6px;height:6px;border-radius:50%;background:var(--b-track);}
+  .ex16 .dots span.active{background:var(--b-logged);}
+
+  /* ===== 17 — Card-stack deck ===== */
+  .ex17{background:var(--track);}
+  .ex17 .phone{background:var(--paper);color:var(--ink);align-items:center;justify-content:center;padding:26px;}
+  .ex17 .deck{position:relative;width:260px;height:340px;}
+  .ex17 .card{position:absolute;inset:0;background:var(--paper);border:1px solid var(--rule);border-radius:18px;box-shadow:0 12px 26px -14px rgba(0,0,0,.3);}
+  .ex17 .card:nth-child(1){transform:translateY(16px) scale(.94);opacity:.5;}
+  .ex17 .card:nth-child(2){transform:translateY(8px) scale(.97);opacity:.75;}
+  .ex17 .card:nth-child(3){display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+  .ex17 .card:nth-child(3) .d{font-size:16px;font-weight:800;}
+  .ex17 .card:nth-child(3) .field{border:1px dashed var(--rule);border-radius:12px;padding:16px 24px;font-size:12px;color:var(--muted);}
+  .ex17 .counter{position:absolute;top:12px;right:14px;font-size:9px;font-weight:800;color:var(--muted);}
+
+  /* ===== 18 — Inbox list ===== */
+  .ex18{background:var(--track);}
+  .ex18 .phone{background:var(--paper);color:var(--ink);padding:26px 22px;}
+  .ex18 .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+  .ex18 .row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--rule);font-size:12px;font-weight:700;}
+  .ex18 .row .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:0 0 auto;}
+  .ex18 .row .n{flex:1;}
+  .ex18 .row .cta{font-size:9px;color:var(--muted);font-weight:600;}
+  .ex18 .done{margin-top:12px;text-align:center;font-size:9px;color:var(--muted);border-top:1px solid var(--rule);padding-top:12px;}
+
+  /* ===== 19 — Grid + floating pill ===== */
+  .ex19{background:var(--track);}
+  .ex19 .phone{background:var(--paper);color:var(--ink);padding:26px 20px;position:relative;}
+  .ex19 .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .ex19 .cell{aspect-ratio:1;border-radius:6px;background:var(--track);}
+  .ex19 .cell.unlogged{background:transparent;border:1px dashed var(--accent);}
+  .ex19 .cell.future{opacity:.35;}
+  .ex19 .pill{position:absolute;bottom:22px;left:20px;right:20px;background:var(--ink);color:var(--onink);border-radius:999px;padding:12px;text-align:center;font-size:11px;font-weight:700;}
+
+  /* ===== 20 — Split view ===== */
+  .ex20{background:var(--track);}
+  .ex20 .phone{background:var(--paper);color:var(--ink);}
+  .ex20 .top{padding:24px 20px 18px;}
+  .ex20 .top .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+  .ex20 .mini{width:8px;height:8px;border-radius:50%;background:var(--rule);}
+  .ex20 .mini.logged{background:var(--ink);}
+  .ex20 .mini.unlogged{background:var(--accent);}
+  .ex20 .bottom{flex:1;background:var(--ink);color:var(--onink);padding:22px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+  .ex20 .bottom .d{font-size:15px;font-weight:800;}
+  .ex20 .bottom .field{width:100%;border:1px dashed var(--b-rule);border-radius:14px;padding:16px;text-align:center;font-size:12px;color:var(--b-muted);}
+</style>
+</head>
+<body>
+
+<div class="rail">gurgenBudget · calendar / daily log · 20 first looks</div>
+
+<section class="exhibit ex01" id="ex01"><span class="tag">01/20 — classic grid</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="head"><span class="month">April</span><span class="allw">Allowance ₺410/day</span></div><div class="g7"></div></div></div></section>
+<section class="exhibit ex02" id="ex02"><span class="tag">02/20 — histogram</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="lbl">This month</div><div class="fig num">20 logged</div><div class="hist"></div><div class="sub"><span>1</span><span>30</span></div></div></div></section>
+<section class="exhibit ex03" id="ex03"><span class="tag">03/20 — heat-tile</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="lbl">April · spend intensity</div><div class="g7"></div><div class="foot"><span>light = less</span><span>dark = more</span></div></div></div></section>
+<section class="exhibit ex04" id="ex04"><span class="tag">04/20 — week rows</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="head">April</div><div class="weeks"></div></div></div></section>
+<section class="exhibit ex05" id="ex05"><span class="tag">05/20 — numeral wall</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="lbl">April</div><div class="g7"></div></div></div></section>
+<section class="exhibit ex06" id="ex06"><span class="tag">06/20 — dot-matrix</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="fig num">20 / 30 logged</div><div class="g7"></div></div></div></section>
+<section class="exhibit ex07" id="ex07"><span class="tag">07/20 — receipt tape</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="head">gurgenBudget · April</div><div class="rows"></div></div></div></section>
+<section class="exhibit ex08" id="ex08"><span class="tag">08/20 — two-tone board</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="lbl">April</div><div class="g7"></div></div></div></section>
+<section class="exhibit ex09" id="ex09"><span class="tag">09/20 — ledger table</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="head">Date — Amount</div><div class="rows"></div></div></div></section>
+<section class="exhibit ex10" id="ex10"><span class="tag">10/20 — week rings</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="rings"></div><div class="lbl">To catch up</div><div class="rows"></div></div></div></section>
+<section class="exhibit ex11" id="ex11"><span class="tag">11/20 — badge grid</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="lbl">April</div><div class="g7"></div></div></div></section>
+<section class="exhibit ex12" id="ex12"><span class="tag">12/20 — capsule wrap</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="lbl">April</div><div class="wrap"></div></div></div></section>
+<section class="exhibit ex13" id="ex13"><span class="tag">13/20 — marker grid</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="lbl">April</div><div class="g7"></div></div></div></section>
+<section class="exhibit ex14" id="ex14"><span class="tag">14/20 — meter timeline</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="lbl">April</div><div class="meter"></div><div class="cuehead">To catch up</div><div class="rows"></div></div></div></section>
+<section class="exhibit ex15" id="ex15"><span class="tag">15/20 — catch-up stack</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="head"><span class="lbl">Catch up</span><span class="n">4 to log</span></div><div class="rows"></div></div></div></section>
+<section class="exhibit ex16" id="ex16"><span class="tag">16/20 — single-day prompt</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="lbl">Log this day</div><div class="d">Mon, Apr 21</div><div class="field">Tap to enter amount</div><div class="dots"><span class="active"></span><span></span><span></span><span></span></div></div></div></section>
+<section class="exhibit ex17" id="ex17"><span class="tag">17/20 — card-stack deck</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="deck"><div class="card"></div><div class="card"></div><div class="card"><span class="counter">1 / 4</span><div class="d">Mon, Apr 21</div><div class="field">Tap to enter amount</div></div></div></div></div></section>
+<section class="exhibit ex18" id="ex18"><span class="tag">18/20 — inbox list</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="lbl">Unlogged</div><div class="rows"></div><div class="done">20 logged this month</div></div></div></section>
+<section class="exhibit ex19" id="ex19"><span class="tag">19/20 — grid + floating pill</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="lbl">April</div><div class="g7"></div><div class="pill">4 unlogged →</div></div></div></section>
+<section class="exhibit ex20" id="ex20"><span class="tag">20/20 — split view</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone"><div class="top"><div class="lbl">April overview</div><div class="g7 minis"></div></div><div class="bottom"><div class="d">Mon, Apr 21</div><div class="field">Tap to enter amount</div></div></div></div></section>
+
+<script>
+  var days = [
+    {d:1,v:-320,s:'logged'},{d:2,v:-1150,s:'logged'},{d:3,v:-60,s:'logged'},{d:4,v:-890,s:'logged'},{d:5,v:-2400,s:'logged'},
+    {d:6,v:-150,s:'logged'},{d:7,v:3200,s:'logged'},{d:8,v:-430,s:'logged'},{d:9,v:-75,s:'logged'},{d:10,v:-1600,s:'logged'},
+    {d:11,v:-220,s:'logged'},{d:12,v:-95,s:'logged'},{d:13,v:-3100,s:'logged'},{d:14,v:-180,s:'logged'},{d:15,v:-640,s:'logged'},
+    {d:16,v:-1020,s:'logged'},{d:17,v:-310,s:'logged'},{d:18,v:-85,s:'logged'},{d:19,v:-1750,s:'logged'},{d:20,v:-260,s:'logged'},
+    {d:21,v:null,s:'unlogged'},{d:22,v:null,s:'unlogged'},{d:23,v:null,s:'unlogged'},{d:24,v:null,s:'unlogged'},
+    {d:25,v:null,s:'future'},{d:26,v:null,s:'future'},{d:27,v:null,s:'future'},{d:28,v:null,s:'future'},
+    {d:29,v:null,s:'future'},{d:30,v:null,s:'future'}
+  ];
+  var unlogged = days.filter(function(x){ return x.s === 'unlogged'; });
+  var maxAbs = Math.max.apply(null, days.filter(function(x){return x.v!=null;}).map(function(x){return Math.abs(x.v);}));
+
+  function fmt(v){ if(v==null) return '—'; return (v<0?'-':'+')+'₺'+Math.abs(v).toLocaleString(); }
+  function weekday(d){ return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][ (d+2) % 7 ]; }
+
+  document.querySelector('#ex01 .g7').innerHTML = days.map(function(x){
+    return '<div class="cell '+x.s+'"><span class="d">'+x.d+'</span><span class="v num">'+(x.s==='logged'?fmt(x.v):x.s==='unlogged'?'log':'')+'</span></div>';
+  }).join('');
+
+  document.querySelector('#ex02 .hist').innerHTML = days.map(function(x){
+    var h = x.v!=null ? Math.max(6, Math.round(Math.abs(x.v)/maxAbs*70)) : 6;
+    return '<div class="bar '+x.s+'" style="height:'+h+'px"></div>';
+  }).join('');
+
+  document.querySelector('#ex03 .g7').innerHTML = days.map(function(x){
+    var op = x.v!=null ? (.25 + Math.abs(x.v)/maxAbs*.75) : 0;
+    var style = x.s==='logged' ? 'background:color-mix(in oklch, var(--accent) '+Math.round(op*100)+'%, var(--paper))' : '';
+    return '<div class="cell '+x.s+'" style="'+style+'"></div>';
+  }).join('');
+
+  (function(){
+    var weeks = [];
+    for(var i=0;i<days.length;i+=7) weeks.push(days.slice(i,i+7));
+    document.querySelector('#ex04 .weeks').innerHTML = weeks.map(function(wk,i){
+      var total = wk.filter(function(x){return x.v!=null;}).reduce(function(a,x){return a+x.v;},0);
+      return '<div class="week"><div class="top"><span>Week '+(i+1)+'</span><span class="num">'+fmt(total||null)+'</span></div>'+
+        '<div class="days">'+wk.map(function(x){return '<div class="d '+x.s+'"></div>';}).join('')+'</div></div>';
+    }).join('');
+  })();
+
+  document.querySelector('#ex05 .g7').innerHTML = days.map(function(x){
+    return '<div class="cell '+x.s+'">'+(x.s==='logged'?'<span class="v num">'+fmt(x.v)+'</span><span class="d">'+x.d+'</span>':x.s==='unlogged'?'<span>log</span>':'')+'</div>';
+  }).join('');
+
+  document.querySelector('#ex06 .g7').innerHTML = days.map(function(x){
+    return '<div class="cell '+x.s+'"><span class="dot"></span><span class="v num">'+(x.s==='logged'?fmt(x.v):'')+'</span></div>';
+  }).join('');
+
+  document.querySelector('#ex07 .rows').innerHTML = days.map(function(x){
+    return '<div class="row '+x.s+'"><span>Apr '+x.d+'</span><span class="num">'+(x.s==='unlogged'?'tap to log':fmt(x.v))+'</span></div>';
+  }).join('');
+
+  document.querySelector('#ex08 .g7').innerHTML = days.map(function(x){
+    return '<div class="cell '+x.s+'">'+(x.s==='logged'?x.d:x.s==='unlogged'?'+':'')+'</div>';
+  }).join('');
+
+  (function(){
+    var weeks = [];
+    for(var i=0;i<days.length;i+=7) weeks.push(days.slice(i,i+7));
+    document.querySelector('#ex09 .rows').innerHTML = weeks.map(function(wk,i){
+      return '<div class="wk">Week '+(i+1)+'</div>'+wk.map(function(x){
+        return '<div class="row '+x.s+'"><span class="n">Apr '+x.d+'</span><span class="num">'+(x.s==='unlogged'?'—':x.s==='future'?'—':fmt(x.v))+'</span></div>';
+      }).join('');
+    }).join('');
+  })();
+
+  (function(){
+    var weeks = [];
+    for(var i=0;i<days.length;i+=7) weeks.push(days.slice(i,i+7));
+    document.querySelector('#ex10 .rings').innerHTML = weeks.map(function(wk){
+      var pct = Math.round(wk.filter(function(x){return x.s==='logged';}).length / wk.length * 100);
+      return '<div class="ring" style="--p:'+pct+'%"><span>'+pct+'%</span></div>';
+    }).join('');
+    document.querySelector('#ex10 .rows').innerHTML = unlogged.map(function(x){
+      return '<div class="row"><span>Apr '+x.d+'</span><span class="num">tap to log</span></div>';
+    }).join('');
+  })();
+
+  document.querySelector('#ex11 .g7').innerHTML = days.map(function(x){
+    return '<div class="cell '+x.s+'"><span class="d">'+x.d+'</span><span class="v num">'+(x.s==='logged'?fmt(x.v):'')+'</span></div>';
+  }).join('');
+
+  document.querySelector('#ex12 .wrap').innerHTML = days.map(function(x){
+    return '<div class="cap '+x.s+'"><span>'+x.d+'</span>'+(x.s==='logged'?'<span class="num">'+fmt(x.v)+'</span>':'')+'</div>';
+  }).join('');
+
+  document.querySelector('#ex13 .g7').innerHTML = days.map(function(x){
+    return '<div class="cell '+x.s+'"><span class="d">'+x.d+'</span><span class="v num">'+(x.s==='logged'?fmt(x.v):'')+'</span></div>';
+  }).join('');
+
+  document.querySelector('#ex14 .meter').innerHTML = days.map(function(x){
+    return '<div class="tick '+x.s+'" style="left:'+(x.d/30*100)+'%"></div>';
+  }).join('');
+  document.querySelector('#ex14 .rows').innerHTML = unlogged.map(function(x){
+    return '<div class="row"><span>Apr '+x.d+'</span><span class="num">tap to log</span></div>';
+  }).join('');
+
+  document.querySelector('#ex15 .rows').innerHTML = unlogged.map(function(x){
+    return '<div class="card"><span class="d">Apr '+x.d+'</span><span class="input">enter amount</span></div>';
+  }).join('');
+
+  document.querySelector('#ex18 .rows').innerHTML = unlogged.map(function(x){
+    return '<div class="row"><span class="dot"></span><span class="n">Apr '+x.d+'</span><span class="cta">tap to log</span></div>';
+  }).join('');
+
+  document.querySelector('#ex19 .g7').innerHTML = days.map(function(x){
+    return '<div class="cell '+x.s+'"></div>';
+  }).join('');
+
+  document.querySelector('#ex20 .minis').innerHTML = days.map(function(x){
+    return '<div class="mini '+x.s+'"></div>';
+  }).join('');
+</script>
+</body>
+</html>

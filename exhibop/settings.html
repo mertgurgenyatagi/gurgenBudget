@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Settings Exhibop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --font: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+    /* gurgenBudget canon palette — PROJECT.md § Color Palette. Every color below is one of these. */
+    --paper: oklch(95% .013 127);
+    --ink: oklch(21% .037 134);
+    --muted: oklch(53% .027 131);
+    --rule: oklch(85% .015 127);
+    --track: oklch(89% .016 128);
+    --accent: oklch(45% .11 139);
+    --short: oklch(53% .12 41);
+    --onink: oklch(95% .013 127);
+    --b-muted: oklch(72% .028 132);
+    --b-rule: oklch(34% .04 133);
+    --b-track: oklch(30% .035 133);
+    --b-logged: oklch(57% .095 141);
+    --b-short: oklch(59% .132 42);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-snap-type:y mandatory; scroll-behavior:auto;}
+  body{
+    font-family:var(--font);
+    background:var(--ink);
+    overflow-x:hidden;
+  }
+  .rail{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:50;
+    font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--onink);opacity:.4;font-weight:600;pointer-events:none;}
+
+  .exhibit{
+    height:100vh;width:100%;position:relative;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    scroll-snap-align:start;
+  }
+  .exhibit .tag{position:absolute;top:16px;left:16px;font-size:11px;letter-spacing:.09em;
+    font-weight:700;color:var(--onink);mix-blend-mode:difference;z-index:5;}
+  .exhibit .dismiss{position:absolute;top:12px;right:12px;z-index:5;
+    font-family:inherit;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    padding:7px 12px;border-radius:999px;border:1px solid var(--onink);background:transparent;color:var(--onink);
+    mix-blend-mode:difference;cursor:pointer;}
+  .exhibit .dismiss:hover{background:var(--onink);mix-blend-mode:normal;color:var(--ink);}
+  .stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+
+  .phone{width:336px;height:648px;border-radius:30px;overflow:hidden;position:relative;
+    display:flex;flex-direction:column;box-shadow:0 40px 80px -30px rgba(0,0,0,.5);}
+  .num{font-variant-numeric:tabular-nums;}
+  .signout{cursor:default;}
+
+  /* ===== 01 — Grouped list ===== */
+  .ex01{background:var(--track);}
+  .ex01 .phone{background:var(--paper);color:var(--ink);padding:30px 22px;}
+  .ex01 .grp{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px;}
+  .ex01 .grp:first-child{margin-top:0;}
+  .ex01 .row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--rule);font-size:12px;}
+  .ex01 .row .num{font-weight:700;}
+  .ex01 .row.signout{color:var(--muted);font-weight:600;border-bottom:none;padding-top:20px;}
+
+  /* ===== 02 — Whisper minimal ===== */
+  .ex02{background:var(--track);}
+  .ex02 .phone{background:var(--paper);color:var(--ink);align-items:center;justify-content:center;padding:30px;}
+  .ex02 .lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+  .ex02 .fig{font-size:38px;font-weight:500;letter-spacing:-.02em;margin:8px 0 34px;}
+  .ex02 .foot{display:flex;flex-direction:column;align-items:center;gap:10px;font-size:11px;color:var(--muted);}
+
+  /* ===== 03 — Two-tone ===== */
+  .ex03{background:var(--track);}
+  .ex03 .phone{background:var(--paper);color:var(--ink);}
+  .ex03 .top{background:var(--ink);color:var(--onink);padding:26px 24px;}
+  .ex03 .top .lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--b-muted);}
+  .ex03 .top .email{font-size:13px;font-weight:700;margin-top:6px;}
+  .ex03 .bottom{flex:1;padding:24px;display:flex;flex-direction:column;gap:14px;}
+  .ex03 .row{display:flex;justify-content:space-between;font-size:12px;padding-bottom:12px;border-bottom:1px solid var(--rule);}
+  .ex03 .row .num{font-weight:700;}
+  .ex03 .signout{font-size:11px;font-weight:700;color:var(--muted);text-align:center;margin-top:auto;}
+
+  /* ===== 04 — Stat card + rows ===== */
+  .ex04{background:var(--track);}
+  .ex04 .phone{background:var(--paper);color:var(--ink);padding:26px 22px;}
+  .ex04 .card{background:var(--ink);color:var(--onink);border-radius:16px;padding:18px;margin-bottom:18px;}
+  .ex04 .card .lbl{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--b-muted);}
+  .ex04 .card .fig{font-size:26px;font-weight:800;margin-top:5px;}
+  .ex04 .row{display:flex;justify-content:space-between;font-size:12px;padding:11px 0;border-bottom:1px solid var(--rule);}
+  .ex04 .signout{margin-top:14px;font-size:11px;font-weight:700;color:var(--muted);text-align:center;}
+
+  /* ===== 05 — Ledger rows ===== */
+  .ex05{background:var(--track);}
+  .ex05 .phone{background:var(--paper);color:var(--ink);padding:28px 0;}
+  .ex05 .head{padding:0 22px 12px;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--ink);margin-bottom:10px;}
+  .ex05 .row{display:flex;justify-content:space-between;padding:12px 22px;font-size:12px;}
+  .ex05 .row .num{font-weight:700;}
+  .ex05 .signout{padding:12px 22px;font-size:11px;color:var(--muted);font-weight:700;}
+
+  /* ===== 06 — Capsule rows ===== */
+  .ex06{background:var(--track);}
+  .ex06 .phone{background:var(--paper);color:var(--ink);padding:28px 22px;}
+  .ex06 .cap{display:flex;justify-content:space-between;align-items:center;background:var(--track);border-radius:999px;padding:12px 16px;margin-bottom:9px;font-size:11px;}
+  .ex06 .cap .num{font-weight:700;}
+  .ex06 .cap.signout{background:transparent;border:1px solid var(--rule);color:var(--muted);justify-content:center;font-weight:700;}
+
+  /* ===== 07 — Kanban card (dark band) ===== */
+  .ex07{background:var(--ink);}
+  .ex07 .phone{background:var(--ink);color:var(--onink);padding:28px 22px;}
+  .ex07 .card{background:var(--b-track);border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;font-size:12px;}
+  .ex07 .card .grab{display:flex;flex-direction:column;gap:2px;margin-right:8px;}
+  .ex07 .card .grab span{width:3px;height:3px;border-radius:50%;background:var(--b-muted);}
+  .ex07 .card .num{font-weight:700;}
+  .ex07 .ghost{margin-top:12px;border:1px dashed var(--b-rule);border-radius:10px;padding:12px;text-align:center;font-size:11px;color:var(--b-muted);font-weight:700;}
+
+  /* ===== 08 — Split pane ===== */
+  .ex08{background:var(--track);}
+  .ex08 .phone{background:var(--paper);color:var(--ink);flex-direction:row;}
+  .ex08 .rail-l{width:126px;background:var(--ink);color:var(--onink);flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:18px;gap:6px;text-align:center;}
+  .ex08 .rail-l .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--b-muted);}
+  .ex08 .rail-l .fig{font-size:24px;font-weight:800;}
+  .ex08 .col-r{flex:1;padding:26px 20px;display:flex;flex-direction:column;justify-content:center;gap:14px;}
+  .ex08 .row{font-size:12px;color:var(--muted);}
+  .ex08 .row b{display:block;color:var(--ink);font-size:12px;font-weight:700;}
+  .ex08 .signout{font-size:11px;font-weight:700;color:var(--muted);margin-top:6px;}
+
+  /* ===== 09 — Folder tab ===== */
+  .ex09{background:var(--track);}
+  .ex09 .phone{background:var(--paper);position:relative;color:var(--ink);padding:34px 22px 22px;}
+  .ex09 .tab{position:absolute;top:0;left:22px;background:var(--track);padding:6px 12px;border-radius:0 0 9px 9px;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .ex09 .row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--rule);font-size:12px;}
+  .ex09 .row .num{font-weight:700;}
+  .ex09 .signout{margin-top:14px;font-size:11px;font-weight:700;color:var(--muted);text-align:center;}
+
+  /* ===== 10 — Ring card (homage) ===== */
+  .ex10{background:var(--track);}
+  .ex10 .phone{background:var(--ink);color:var(--onink);padding:28px 24px;}
+  .ex10 .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--b-muted);}
+  .ex10 .fig{font-size:28px;font-weight:800;margin:6px 0 20px;}
+  .ex10 .row{display:flex;justify-content:space-between;font-size:12px;padding:10px 0;border-bottom:1px solid var(--b-rule);}
+  .ex10 .row .num{font-weight:700;}
+  .ex10 .signout{margin-top:14px;font-size:11px;font-weight:700;color:var(--b-muted);text-align:center;border:1px dashed var(--b-rule);border-radius:10px;padding:10px;}
+
+  /* ===== 11 — Bar-share homage ===== */
+  .ex11{background:var(--track);}
+  .ex11 .phone{background:var(--paper);color:var(--ink);padding:28px 22px;}
+  .ex11 .lbl{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  .ex11 .fig{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-bottom:16px;}
+  .ex11 .bar .top{display:flex;justify-content:space-between;font-size:10px;margin-bottom:5px;}
+  .ex11 .bar .track{height:7px;border-radius:4px;background:var(--track);overflow:hidden;}
+  .ex11 .bar .fill{height:100%;border-radius:4px;background:var(--accent);width:38%;}
+  .ex11 .row{display:flex;justify-content:space-between;font-size:12px;padding:12px 0;border-bottom:1px solid var(--rule);margin-top:18px;}
+  .ex11 .signout{margin-top:14px;font-size:11px;font-weight:700;color:var(--muted);text-align:center;}
+
+  /* ===== 12 — Standard financial ===== */
+  .ex12{background:var(--track);}
+  .ex12 .phone{background:var(--paper);color:var(--ink);padding:26px 22px;}
+  .ex12 .balcard{background:var(--ink);color:var(--onink);border-radius:16px;padding:18px;margin-bottom:16px;}
+  .ex12 .balcard .lbl{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--b-muted);}
+  .ex12 .balcard .fig{font-size:28px;font-weight:800;margin-top:5px;}
+  .ex12 .row{display:flex;justify-content:space-between;font-size:12px;padding:11px 0;border-bottom:1px solid var(--rule);color:var(--muted);}
+  .ex12 .row b{color:var(--ink);font-weight:700;}
+  .ex12 .signout{margin-top:12px;font-size:11px;color:var(--muted);text-align:center;font-weight:700;}
+
+  /* ===== 13 — Marker underline rows ===== */
+  .ex13{background:var(--track);}
+  .ex13 .phone{background:var(--paper);color:var(--ink);padding:28px 22px;justify-content:center;}
+  .ex13 .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .ex13 .fig{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:6px 0 18px;}
+  .ex13 .tagrow{display:flex;justify-content:space-between;font-size:12px;padding:10px 0;border-bottom:2px solid var(--accent);}
+  .ex13 .tagrow.mute{border-color:var(--rule);}
+  .ex13 .signout{margin-top:12px;font-size:11px;color:var(--muted);font-weight:700;text-align:center;}
+
+  /* ===== 14 — Badge rows ===== */
+  .ex14{background:var(--track);}
+  .ex14 .phone{background:var(--paper);color:var(--ink);padding:26px 22px;}
+  .ex14 .head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
+  .ex14 .head .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .ex14 .badge{background:var(--accent);color:var(--onink);border-radius:999px;padding:6px 12px;font-size:11px;font-weight:800;}
+  .ex14 .row{display:flex;justify-content:space-between;font-size:12px;padding:11px 0;border-bottom:1px solid var(--rule);}
+  .ex14 .signout{margin-top:14px;font-size:11px;color:var(--muted);font-weight:700;text-align:center;border:1px dashed var(--rule);border-radius:10px;padding:10px;}
+
+  /* ===== 15 — Manifesto statement ===== */
+  .ex15{background:var(--ink);}
+  .ex15 .phone{background:var(--ink);color:var(--onink);justify-content:center;padding:30px 24px;}
+  .ex15 .lbl{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--b-muted);}
+  .ex15 .statement{font-size:44px;font-weight:800;letter-spacing:-.04em;line-height:1;margin:10px 0 30px;}
+  .ex15 .foot{display:flex;justify-content:space-between;font-size:11px;color:var(--b-muted);border-top:1px solid var(--b-rule);padding-top:14px;}
+
+  /* ===== 16 — Two-column table ===== */
+  .ex16{background:var(--track);}
+  .ex16 .phone{background:var(--paper);color:var(--ink);padding:28px 22px;justify-content:center;}
+  .ex16 .row{display:flex;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--rule);font-size:12px;}
+  .ex16 .row .k{color:var(--muted);}
+  .ex16 .row .num{font-weight:700;}
+  .ex16 .signout{margin-top:16px;font-size:11px;color:var(--muted);font-weight:700;text-align:center;}
+
+  /* ===== 17 — Timeline dividers ===== */
+  .ex17{background:var(--track);}
+  .ex17 .phone{background:var(--paper);color:var(--ink);padding:30px 24px;position:relative;}
+  .ex17 .sec{position:relative;padding-left:18px;padding-bottom:20px;}
+  .ex17 .sec::before{content:'';position:absolute;left:4px;top:4px;bottom:0;width:1px;background:var(--rule);}
+  .ex17 .sec::after{content:'';position:absolute;left:0;top:2px;width:9px;height:9px;border-radius:50%;background:var(--accent);border:2px solid var(--paper);}
+  .ex17 .sec .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .ex17 .sec .fig{font-size:15px;font-weight:700;margin-top:4px;}
+  .ex17 .signout{margin-left:18px;font-size:11px;color:var(--muted);font-weight:700;}
+
+  /* ===== 18 — Delta chip rows ===== */
+  .ex18{background:var(--track);}
+  .ex18 .phone{background:var(--paper);color:var(--ink);padding:28px 22px;}
+  .ex18 .row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--rule);font-size:12px;}
+  .ex18 .chip{font-weight:800;padding:4px 10px;border-radius:8px;font-size:10px;background:color-mix(in oklch, var(--accent) 18%, var(--paper));color:var(--accent);}
+  .ex18 .signout{margin-top:14px;font-size:11px;color:var(--muted);font-weight:700;text-align:center;}
+
+  /* ===== 19 — Coin cushion (Tier A CSS art) ===== */
+  .ex19{background:var(--track);}
+  .ex19 .phone{background:var(--paper);color:var(--ink);align-items:center;padding:30px 24px 22px;}
+  .ex19 .cushion{width:96px;height:60px;border-radius:0 0 48px 48px / 0 0 30px 30px;background:var(--accent);position:relative;margin-bottom:14px;}
+  .ex19 .cushion::before{content:'';position:absolute;top:-10px;left:8px;right:8px;height:20px;border-radius:10px;background:var(--accent);}
+  .ex19 .lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+  .ex19 .fig{font-size:24px;font-weight:800;margin:6px 0 18px;}
+  .ex19 .row{display:flex;justify-content:space-between;width:100%;font-size:12px;padding:10px 0;border-top:1px solid var(--rule);}
+  .ex19 .signout{margin-top:12px;font-size:11px;color:var(--muted);font-weight:700;}
+
+  /* ===== 20 — Meter dial ===== */
+  .ex20{background:var(--ink);}
+  .ex20 .phone{background:var(--ink);color:var(--onink);align-items:center;padding:30px 24px;}
+  .ex20 .lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--b-muted);}
+  .ex20 .fig{font-size:26px;font-weight:800;margin:5px 0 16px;}
+  .ex20 .scale{width:100%;height:6px;border-radius:3px;background:var(--b-track);position:relative;margin-bottom:22px;}
+  .ex20 .scale .mark{position:absolute;top:-4px;width:3px;height:14px;border-radius:2px;background:var(--b-logged);left:30%;}
+  .ex20 .row{display:flex;justify-content:space-between;width:100%;font-size:12px;padding:10px 0;border-bottom:1px solid var(--b-rule);}
+  .ex20 .signout{margin-top:14px;font-size:11px;color:var(--b-muted);font-weight:700;}
+</style>
+</head>
+<body>
+
+<div class="rail">gurgenBudget · settings · 20 first looks</div>
+
+<section class="exhibit ex01" id="ex01"><span class="tag">01/20 — grouped list</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="grp">Budget</div>
+  <div class="row"><span>Buffer</span><span class="num">₺150 / day</span></div>
+  <div class="grp">Account</div>
+  <div class="row"><span>Signed in as</span><span class="num">you@example.com</span></div>
+  <div class="row signout">Sign out</div>
+</div></div></section>
+
+<section class="exhibit ex02" id="ex02"><span class="tag">02/20 — whisper</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="lbl">Daily buffer</div>
+  <div class="fig num">₺150</div>
+  <div class="foot"><span>you@example.com</span><span>Sign out</span></div>
+</div></div></section>
+
+<section class="exhibit ex03" id="ex03"><span class="tag">03/20 — two-tone</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="top"><span class="lbl">Signed in as</span><div class="email">you@example.com</div></div>
+  <div class="bottom">
+    <div class="row"><span>Buffer</span><span class="num">₺150 / day</span></div>
+    <div class="signout">Sign out</div>
+  </div>
+</div></div></section>
+
+<section class="exhibit ex04" id="ex04"><span class="tag">04/20 — stat card</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="card"><span class="lbl">Buffer</span><div class="fig num">₺150 / day</div></div>
+  <div class="row"><span>Signed in as</span><span>you@example.com</span></div>
+  <div class="signout">Sign out</div>
+</div></div></section>
+
+<section class="exhibit ex05" id="ex05"><span class="tag">05/20 — ledger</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="head">Settings</div>
+  <div class="row"><span>Buffer</span><span class="num">₺150 / day</span></div>
+  <div class="row"><span>Account</span><span class="num">you@example.com</span></div>
+  <div class="signout">Sign out</div>
+</div></div></section>
+
+<section class="exhibit ex06" id="ex06"><span class="tag">06/20 — capsule rows</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="cap"><span>Buffer</span><span class="num">₺150 / day</span></div>
+  <div class="cap"><span>Account</span><span class="num">you@example.com</span></div>
+  <div class="cap signout">Sign out</div>
+</div></div></section>
+
+<section class="exhibit ex07" id="ex07"><span class="tag">07/20 — kanban card</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="card"><span class="grab"><span></span><span></span><span></span></span><span>Buffer</span><span class="num">₺150 / day</span></div>
+  <div class="card"><span class="grab"><span></span><span></span><span></span></span><span>Account</span><span class="num">you@example.com</span></div>
+  <div class="ghost">Sign out</div>
+</div></div></section>
+
+<section class="exhibit ex08" id="ex08"><span class="tag">08/20 — split pane</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="rail-l"><span class="lbl">Buffer</span><span class="fig num">₺150</span></div>
+  <div class="col-r">
+    <div class="row">Signed in as<b>you@example.com</b></div>
+    <div class="signout">Sign out</div>
+  </div>
+</div></div></section>
+
+<section class="exhibit ex09" id="ex09"><span class="tag">09/20 — folder tab</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="tab">Settings</div>
+  <div class="row"><span>Buffer</span><span class="num">₺150 / day</span></div>
+  <div class="row"><span>Account</span><span class="num">you@example.com</span></div>
+  <div class="signout">Sign out</div>
+</div></div></section>
+
+<section class="exhibit ex10" id="ex10"><span class="tag">10/20 — ring card</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <span class="lbl">Buffer</span>
+  <div class="fig num">₺150 / day</div>
+  <div class="row"><span>Account</span><span class="num">you@example.com</span></div>
+  <div class="signout">Sign out</div>
+</div></div></section>
+
+<section class="exhibit ex11" id="ex11"><span class="tag">11/20 — bar-share</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="lbl">Buffer</div>
+  <div class="fig num">₺150 / day</div>
+  <div class="bar"><div class="top"><span>0</span><span>₺400</span></div><div class="track"><div class="fill"></div></div></div>
+  <div class="row"><span>Account</span><span class="num">you@example.com</span></div>
+  <div class="signout">Sign out</div>
+</div></div></section>
+
+<section class="exhibit ex12" id="ex12"><span class="tag">12/20 — standard financial</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="balcard"><span class="lbl">Buffer</span><div class="fig num">₺150 / day</div></div>
+  <div class="row">Signed in as <b>you@example.com</b></div>
+  <div class="signout">Sign out</div>
+</div></div></section>
+
+<section class="exhibit ex13" id="ex13"><span class="tag">13/20 — marker rows</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="lbl">Settings</div>
+  <div class="fig num">₺150</div>
+  <div class="tagrow"><span>Buffer / day</span><span class="num">₺150</span></div>
+  <div class="tagrow mute"><span>Account</span><span class="num">you@example.com</span></div>
+  <div class="signout">Sign out</div>
+</div></div></section>
+
+<section class="exhibit ex14" id="ex14"><span class="tag">14/20 — badge</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="head"><span class="lbl">Settings</span><span class="badge num">₺150 / day</span></div>
+  <div class="row"><span>Account</span><span class="num">you@example.com</span></div>
+  <div class="signout">Sign out</div>
+</div></div></section>
+
+<section class="exhibit ex15" id="ex15"><span class="tag">15/20 — manifesto</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <span class="lbl">Buffer, per day</span>
+  <div class="statement num">₺150</div>
+  <div class="foot"><span>you@example.com</span><span>Sign out</span></div>
+</div></div></section>
+
+<section class="exhibit ex16" id="ex16"><span class="tag">16/20 — two-column</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="row"><span class="k">Buffer</span><span class="num">₺150 / day</span></div>
+  <div class="row"><span class="k">Account</span><span class="num">you@example.com</span></div>
+  <div class="signout">Sign out</div>
+</div></div></section>
+
+<section class="exhibit ex17" id="ex17"><span class="tag">17/20 — timeline</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="sec"><span class="lbl">Buffer</span><div class="fig num">₺150 / day</div></div>
+  <div class="sec"><span class="lbl">Account</span><div class="fig num">you@example.com</div></div>
+  <div class="signout">Sign out</div>
+</div></div></section>
+
+<section class="exhibit ex18" id="ex18"><span class="tag">18/20 — delta chip</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="row"><span>Buffer</span><span class="chip num">₺150 / day</span></div>
+  <div class="row"><span>Account</span><span class="chip num">you@example.com</span></div>
+  <div class="signout">Sign out</div>
+</div></div></section>
+
+<section class="exhibit ex19" id="ex19"><span class="tag">19/20 — coin cushion</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="cushion"></div>
+  <div class="lbl">Buffer</div>
+  <div class="fig num">₺150 / day</div>
+  <div class="row"><span>Account</span><span>you@example.com</span></div>
+  <div class="signout">Sign out</div>
+</div></div></section>
+
+<section class="exhibit ex20" id="ex20"><span class="tag">20/20 — meter dial</span><button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button><div class="stage"><div class="phone">
+  <div class="lbl">Buffer</div>
+  <div class="fig num">₺150 / day</div>
+  <div class="scale"><div class="mark"></div></div>
+  <div class="row"><span>Account</span><span>you@example.com</span></div>
+  <div class="signout">Sign out</div>
+</div></div></section>
+
+</body>
+</html>

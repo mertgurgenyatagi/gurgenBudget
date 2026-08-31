@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Wishlist Exhibop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --font: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+    /* gurgenBudget canon palette — PROJECT.md § Color Palette. Every color below is one of these. */
+    --paper: oklch(95% .013 127);
+    --ink: oklch(21% .037 134);
+    --muted: oklch(53% .027 131);
+    --rule: oklch(85% .015 127);
+    --track: oklch(89% .016 128);
+    --accent: oklch(45% .11 139);
+    --short: oklch(53% .12 41);
+    --onink: oklch(95% .013 127);
+    --b-muted: oklch(72% .028 132);
+    --b-rule: oklch(34% .04 133);
+    --b-track: oklch(30% .035 133);
+    --b-logged: oklch(57% .095 141);
+    --b-short: oklch(59% .132 42);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-snap-type:y mandatory; scroll-behavior:auto;}
+  body{
+    font-family:var(--font);
+    background:var(--ink);
+    overflow-x:hidden;
+  }
+  .rail{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:50;
+    font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--onink);opacity:.4;font-weight:600;pointer-events:none;}
+
+  .exhibit{
+    height:100vh;width:100%;position:relative;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    scroll-snap-align:start;
+  }
+  .exhibit .tag{position:absolute;top:16px;left:16px;font-size:11px;letter-spacing:.09em;
+    font-weight:700;color:var(--onink);mix-blend-mode:difference;z-index:5;}
+  .exhibit .dismiss{position:absolute;top:12px;right:12px;z-index:5;
+    font-family:inherit;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    padding:7px 12px;border-radius:999px;border:1px solid var(--onink);background:transparent;color:var(--onink);
+    mix-blend-mode:difference;cursor:pointer;}
+  .exhibit .dismiss:hover{background:var(--onink);mix-blend-mode:normal;color:var(--ink);}
+  .stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+
+  .phone{width:336px;height:648px;border-radius:30px;overflow:hidden;position:relative;
+    display:flex;flex-direction:column;box-shadow:0 40px 80px -30px rgba(0,0,0,.5);}
+  .num{font-variant-numeric:tabular-nums;}
+  .strike{text-decoration:line-through;opacity:.5;}
+  .strike .num{text-decoration:line-through;}
+
+  /* ===== 01 — Ledger stub (torn edge) ===== */
+  .ex01{background:var(--track);}
+  .ex01 .phone{background:var(--paper);padding:34px 26px 26px;color:var(--ink);
+    clip-path:polygon(0 0,100% 0,100% 97%,95% 100%,90% 97%,85% 100%,80% 97%,75% 100%,70% 97%,65% 100%,60% 97%,55% 100%,50% 97%,45% 100%,40% 97%,35% 100%,30% 97%,25% 100%,20% 97%,15% 100%,10% 97%,5% 100%,0 97%);}
+  .ex01 .head{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+  .ex01 .row{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px dashed var(--rule);padding:12px 0;font-size:14px;}
+  .ex01 .row .num{font-size:15px;font-weight:700;}
+  .ex01 .foot{margin-top:22px;display:flex;justify-content:space-between;align-items:baseline;}
+  .ex01 .foot .lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .ex01 .foot .num{font-size:32px;font-weight:800;color:var(--accent);}
+
+  /* ===== 02 — Split pane ===== */
+  .ex02{background:var(--track);}
+  .ex02 .phone{background:var(--paper);color:var(--ink);flex-direction:row;}
+  .ex02 .rail-l{width:118px;background:var(--ink);color:var(--onink);flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:18px;gap:6px;}
+  .ex02 .rail-l .lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--b-muted);text-align:center;}
+  .ex02 .rail-l .fig{font-size:26px;font-weight:800;letter-spacing:-.03em;text-align:center;line-height:1.1;}
+  .ex02 .col-r{flex:1;padding:26px 20px;display:flex;flex-direction:column;justify-content:center;gap:12px;}
+  .ex02 .row{display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-bottom:1px solid var(--rule);}
+  .ex02 .row .num{font-weight:700;}
+  .ex02 .add{font-size:10px;font-weight:700;color:var(--muted);margin-top:2px;}
+
+  /* ===== 03 — Hero ring ===== */
+  .ex03{background:var(--ink);}
+  .ex03 .phone{background:var(--ink);color:var(--onink);align-items:center;padding:36px 26px 24px;}
+  .ex03 .ringwrap{position:relative;width:172px;height:172px;display:flex;align-items:center;justify-content:center;margin-bottom:22px;}
+  .ex03 svg{width:172px;height:172px;transform:rotate(-90deg);}
+  .ex03 .track{fill:none;stroke:var(--b-track);stroke-width:10;}
+  .ex03 .fill{fill:none;stroke:var(--b-logged);stroke-width:10;stroke-linecap:round;stroke-dasharray:339;stroke-dashoffset:76;}
+  .ex03 .center{position:absolute;text-align:center;}
+  .ex03 .center .fig{font-size:26px;font-weight:800;letter-spacing:-.03em;}
+  .ex03 .center .lbl{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--b-muted);margin-top:2px;}
+  .ex03 .list{width:100%;display:flex;flex-direction:column;gap:9px;}
+  .ex03 .row{display:flex;justify-content:space-between;font-size:11px;padding-bottom:9px;border-bottom:1px solid var(--b-rule);color:var(--b-muted);}
+  .ex03 .row .num{color:var(--onink);font-weight:700;}
+
+  /* ===== 04 — Coin jar (Tier A CSS art) ===== */
+  .ex04{background:var(--track);}
+  .ex04 .phone{background:var(--paper);color:var(--ink);align-items:center;padding:30px 24px 22px;}
+  .ex04 .jar{width:104px;height:132px;position:relative;margin-bottom:6px;}
+  .ex04 .jar .neck{position:absolute;top:0;left:36px;width:32px;height:14px;background:var(--rule);border-radius:4px 4px 0 0;}
+  .ex04 .jar .body{position:absolute;top:12px;left:0;width:104px;height:120px;border-radius:14px;background:var(--track);overflow:hidden;border:2px solid var(--rule);}
+  .ex04 .jar .fill{position:absolute;bottom:0;left:0;width:100%;height:68%;background:var(--accent);}
+  .ex04 .fig{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-top:8px;}
+  .ex04 .lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+  .ex04 .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
+  .ex04 .chip{background:var(--track);border-radius:999px;padding:6px 11px;font-size:9px;font-weight:600;display:flex;gap:6px;}
+  .ex04 .chip .num{font-weight:800;}
+
+  /* ===== 05 — Two-tone card ===== */
+  .ex05{background:var(--track);}
+  .ex05 .phone{background:var(--paper);color:var(--ink);}
+  .ex05 .top{background:var(--ink);color:var(--onink);padding:26px 24px;}
+  .ex05 .top .lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--b-muted);}
+  .ex05 .top .fig{font-size:38px;font-weight:800;letter-spacing:-.03em;margin-top:6px;}
+  .ex05 .bottom{flex:1;padding:20px 24px;display:flex;flex-direction:column;gap:10px;}
+  .ex05 .row{display:flex;justify-content:space-between;font-size:12px;padding-bottom:9px;border-bottom:1px solid var(--rule);}
+  .ex05 .row .num{font-weight:700;}
+  .ex05 .add{font-size:10px;font-weight:700;color:var(--muted);text-align:center;border:1px dashed var(--rule);border-radius:10px;padding:9px;margin-top:4px;}
+
+  /* ===== 06 — Grid tiles ===== */
+  .ex06{background:var(--track);}
+  .ex06 .phone{background:var(--paper);color:var(--ink);padding:26px 20px;}
+  .ex06 .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;}
+  .ex06 .head .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .ex06 .head .badge{background:var(--accent);color:var(--onink);border-radius:999px;padding:5px 11px;font-size:11px;font-weight:800;}
+  .ex06 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .ex06 .tile{background:var(--track);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;}
+  .ex06 .tile.done{opacity:.5;}
+  .ex06 .tile .n{font-size:10px;}
+  .ex06 .tile .num{font-size:13px;font-weight:800;}
+  .ex06 .tile.add{align-items:center;justify-content:center;color:var(--muted);font-weight:700;font-size:10px;}
+
+  /* ===== 07 — Capsule wallet ===== */
+  .ex07{background:var(--track);}
+  .ex07 .phone{background:var(--paper);color:var(--ink);padding:28px 22px;}
+  .ex07 .wallet{background:var(--accent);color:var(--onink);border-radius:20px;padding:20px;margin-bottom:18px;}
+  .ex07 .wallet .lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;opacity:.8;}
+  .ex07 .wallet .fig{font-size:30px;font-weight:800;letter-spacing:-.03em;margin-top:6px;}
+  .ex07 .cap{display:flex;align-items:center;gap:8px;background:var(--track);border-radius:999px;padding:10px 14px;margin-bottom:8px;font-size:11px;}
+  .ex07 .cap .n{flex:1;}
+  .ex07 .cap .num{font-weight:700;}
+  .ex07 .cap.done{opacity:.5;}
+
+  /* ===== 08 — Afford-meter ===== */
+  .ex08{background:var(--ink);}
+  .ex08 .phone{background:var(--ink);color:var(--onink);padding:30px 24px;justify-content:center;}
+  .ex08 .fig{font-size:30px;font-weight:800;letter-spacing:-.03em;}
+  .ex08 .lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--b-muted);margin:5px 0 18px;}
+  .ex08 .meter{height:6px;border-radius:3px;background:var(--b-track);position:relative;margin-bottom:8px;overflow:visible;}
+  .ex08 .meter .fill{position:absolute;left:0;top:0;height:100%;background:var(--b-logged);border-radius:3px;width:88%;}
+  .ex08 .meter .tick{position:absolute;top:-3px;width:2px;height:12px;background:var(--onink);}
+  .ex08 .sub{display:flex;justify-content:space-between;font-size:9px;color:var(--b-muted);margin-bottom:20px;}
+  .ex08 .row{display:flex;justify-content:space-between;font-size:11px;padding:7px 0;border-bottom:1px solid var(--b-rule);}
+  .ex08 .row .num{font-weight:700;}
+
+  /* ===== 09 — Whisper stack ===== */
+  .ex09{background:var(--track);}
+  .ex09 .phone{background:var(--paper);border:1px solid var(--rule);color:var(--ink);padding:36px 28px;justify-content:center;}
+  .ex09 .lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+  .ex09 .fig{font-size:26px;font-weight:500;letter-spacing:-.01em;margin:8px 0 26px;}
+  .ex09 .rule{width:22px;height:1px;background:var(--rule);margin-bottom:20px;}
+  .ex09 .row{display:flex;justify-content:space-between;font-size:12px;padding:9px 0;color:var(--muted);}
+  .ex09 .row .num{color:var(--ink);}
+  .ex09 .add{margin-top:12px;font-size:9px;color:var(--muted);}
+
+  /* ===== 10 — Badge rows ===== */
+  .ex10{background:var(--track);}
+  .ex10 .phone{background:var(--paper);color:var(--ink);padding:26px 22px;}
+  .ex10 .head{display:flex;justify-content:flex-end;margin-bottom:16px;}
+  .ex10 .head .badge{background:var(--accent);color:var(--onink);border-radius:10px;padding:8px 12px;font-size:11px;font-weight:800;text-align:right;}
+  .ex10 .head .badge .lbl{display:block;font-size:8px;letter-spacing:.1em;text-transform:uppercase;opacity:.8;font-weight:600;}
+  .ex10 .row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--rule);font-size:11px;}
+  .ex10 .row .n{flex:1;}
+  .ex10 .row .check{width:14px;height:14px;border-radius:50%;background:var(--accent);color:var(--onink);font-size:9px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .ex10 .row .num{font-weight:700;}
+  .ex10 .add{margin-top:10px;font-size:9px;font-weight:700;color:var(--muted);}
+
+  /* ===== 11 — Marker underline ===== */
+  .ex11{background:var(--track);}
+  .ex11 .phone{background:var(--paper);color:var(--ink);padding:28px 22px;justify-content:center;}
+  .ex11 .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .ex11 .fig{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:6px 0 20px;}
+  .ex11 .tagrow{display:flex;justify-content:space-between;font-size:12px;padding:9px 0;border-bottom:2px solid var(--accent);}
+  .ex11 .tagrow.done{border-color:var(--rule);}
+  .ex11 .tagrow .num{font-weight:700;}
+  .ex11 .add{margin-top:10px;font-size:9px;color:var(--muted);}
+
+  /* ===== 12 — Delta chips ===== */
+  .ex12{background:var(--track);}
+  .ex12 .phone{background:var(--paper);color:var(--ink);padding:28px 22px;}
+  .ex12 .fig{font-size:26px;font-weight:800;letter-spacing:-.02em;}
+  .ex12 .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+  .ex12 .row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--rule);font-size:12px;}
+  .ex12 .delta{font-weight:800;padding:3px 9px;border-radius:7px;font-size:10px;background:color-mix(in oklch, var(--accent) 18%, var(--paper));color:var(--accent);}
+  .ex12 .delta.done{background:var(--track);color:var(--muted);}
+  .ex12 .add{margin-top:10px;font-size:9px;font-weight:700;color:var(--muted);}
+
+  /* ===== 13 — Kanban stack (dark band) ===== */
+  .ex13{background:var(--ink);}
+  .ex13 .phone{background:var(--ink);color:var(--onink);padding:26px 20px;}
+  .ex13 .head{display:flex;justify-content:space-between;margin-bottom:14px;}
+  .ex13 .head .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--b-muted);}
+  .ex13 .head .fig{font-size:15px;font-weight:800;}
+  .ex13 .card{background:var(--b-track);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+  .ex13 .card.done{opacity:.5;}
+  .ex13 .grab{display:flex;flex-direction:column;gap:2px;}
+  .ex13 .grab span{width:3px;height:3px;border-radius:50%;background:var(--b-muted);}
+  .ex13 .card .n{flex:1;font-size:11px;}
+  .ex13 .card .num{font-size:11px;font-weight:700;}
+
+  /* ===== 14 — Standard financial ===== */
+  .ex14{background:var(--track);}
+  .ex14 .phone{background:var(--paper);color:var(--ink);padding:26px 22px;}
+  .ex14 .balcard{background:var(--ink);color:var(--onink);border-radius:16px;padding:18px;margin-bottom:16px;}
+  .ex14 .balcard .lbl{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--b-muted);}
+  .ex14 .balcard .fig{font-size:28px;font-weight:800;margin-top:5px;}
+  .ex14 .row{display:flex;justify-content:space-between;font-size:11px;padding:9px 0;border-bottom:1px solid var(--rule);color:var(--muted);}
+  .ex14 .row .num{color:var(--ink);font-weight:700;}
+  .ex14 .add{margin-top:10px;font-size:9px;color:var(--muted);text-align:center;}
+
+  /* ===== 15 — Folder tab ===== */
+  .ex15{background:var(--track);}
+  .ex15 .phone{background:var(--paper);position:relative;color:var(--ink);padding:32px 22px 22px;}
+  .ex15 .tab{position:absolute;top:0;left:22px;background:var(--track);padding:6px 12px;border-radius:0 0 9px 9px;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .ex15 .fig{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:8px 0 18px;}
+  .ex15 .row{display:flex;justify-content:space-between;font-size:12px;padding:9px 0;border-bottom:1px solid var(--rule);}
+  .ex15 .row .num{font-weight:700;}
+  .ex15 .add{margin-top:10px;font-size:9px;font-weight:700;color:var(--muted);}
+
+  /* ===== 16 — Vertical timeline ===== */
+  .ex16{background:var(--track);}
+  .ex16 .phone{background:var(--paper);color:var(--ink);padding:28px 24px;position:relative;}
+  .ex16 .float{position:absolute;top:22px;right:22px;background:var(--accent);color:var(--onink);border-radius:12px;padding:9px 12px;text-align:right;}
+  .ex16 .float .lbl{display:block;font-size:8px;letter-spacing:.1em;text-transform:uppercase;opacity:.8;}
+  .ex16 .float .num{font-size:14px;font-weight:800;}
+  .ex16 .lbl-top{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:34px 0 16px;}
+  .ex16 .tl{position:relative;padding-left:18px;}
+  .ex16 .tl::before{content:'';position:absolute;left:4px;top:4px;bottom:4px;width:1px;background:var(--rule);}
+  .ex16 .item{position:relative;padding-bottom:16px;display:flex;justify-content:space-between;font-size:11px;}
+  .ex16 .item::before{content:'';position:absolute;left:-18px;top:2px;width:9px;height:9px;border-radius:50%;background:var(--accent);border:2px solid var(--paper);}
+  .ex16 .item.done::before{background:var(--muted);}
+  .ex16 .item .num{font-weight:700;}
+
+  /* ===== 17 — Ring card (homage to the confirmed carousel design) ===== */
+  .ex17{background:var(--track);}
+  .ex17 .phone{background:var(--ink);color:var(--onink);padding:28px 24px;}
+  .ex17 .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--b-muted);}
+  .ex17 .fig{font-size:30px;font-weight:800;letter-spacing:-.02em;margin:6px 0 20px;}
+  .ex17 .row{display:flex;justify-content:space-between;font-size:12px;padding:9px 0;border-bottom:1px solid var(--b-rule);}
+  .ex17 .row .num{font-weight:700;}
+  .ex17 .add{margin-top:12px;font-size:9px;font-weight:700;color:var(--b-muted);text-align:center;border:1px dashed var(--b-rule);border-radius:10px;padding:9px;}
+
+  /* ===== 18 — Bar share (homage to the confirmed Month Setup pattern) ===== */
+  .ex18{background:var(--track);}
+  .ex18 .phone{background:var(--paper);color:var(--ink);padding:28px 22px;}
+  .ex18 .fig{font-size:26px;font-weight:800;letter-spacing:-.02em;}
+  .ex18 .lbl{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;}
+  .ex18 .bar{margin:11px 0;}
+  .ex18 .bar .top{display:flex;justify-content:space-between;font-size:10px;margin-bottom:5px;}
+  .ex18 .bar .top span:first-child{color:var(--muted);}
+  .ex18 .bar .top span:last-child{color:var(--ink);font-weight:700;}
+  .ex18 .bar.done .top span{color:var(--muted)!important;}
+  .ex18 .bar .track{height:7px;border-radius:4px;background:var(--track);overflow:hidden;}
+  .ex18 .bar .fill{height:100%;border-radius:4px;background:var(--accent);}
+  .ex18 .bar.done .fill{background:var(--rule);}
+
+  /* ===== 19 — Two-column ledger ===== */
+  .ex19{background:var(--track);}
+  .ex19 .phone{background:var(--paper);color:var(--ink);padding:28px 0 22px;position:relative;}
+  .ex19 .head{padding:0 22px 14px;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--ink);margin-bottom:12px;}
+  .ex19 .row{display:flex;padding:9px 22px;font-size:12px;}
+  .ex19 .row .n{flex:1;}
+  .ex19 .row .num{font-weight:700;}
+  .ex19 .stamp{position:absolute;bottom:24px;right:22px;border:2px solid var(--accent);color:var(--accent);border-radius:10px;padding:8px 12px;text-align:right;transform:rotate(-3deg);}
+  .ex19 .stamp .lbl{display:block;font-size:8px;letter-spacing:.1em;text-transform:uppercase;}
+  .ex19 .stamp .num{font-size:14px;font-weight:800;}
+
+  /* ===== 20 — Piggy meter dial ===== */
+  .ex20{background:var(--ink);}
+  .ex20 .phone{background:var(--ink);color:var(--onink);align-items:center;padding:30px 24px 22px;}
+  .ex20 .dial{width:180px;height:96px;position:relative;margin-bottom:8px;}
+  .ex20 svg{width:180px;height:180px;position:absolute;top:0;left:0;}
+  .ex20 .track{fill:none;stroke:var(--b-track);stroke-width:12;}
+  .ex20 .fill{fill:none;stroke:var(--b-logged);stroke-width:12;stroke-linecap:round;stroke-dasharray:283;stroke-dashoffset:60;}
+  .ex20 .dial .center{position:absolute;bottom:0;width:100%;text-align:center;}
+  .ex20 .dial .center .fig{font-size:22px;font-weight:800;letter-spacing:-.02em;}
+  .ex20 .dial .center .lbl{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--b-muted);}
+  .ex20 .list{width:100%;margin-top:14px;display:flex;flex-direction:column;gap:8px;}
+  .ex20 .row{display:flex;justify-content:space-between;font-size:11px;color:var(--b-muted);border-bottom:1px solid var(--b-rule);padding-bottom:8px;}
+  .ex20 .row .num{color:var(--onink);font-weight:700;}
+</style>
+</head>
+<body>
+
+<div class="rail">gurgenBudget · wishlist + money saved · 20 first looks</div>
+
+<!-- 01 — Ledger stub -->
+<section class="exhibit ex01" id="ex01">
+  <span class="tag">01/20 — ledger stub</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="head">Wishlist</div>
+    <div class="row"><span>New guitar</span><span class="num">₺28,000</span></div>
+    <div class="row"><span>Sneakers</span><span class="num">₺4,200</span></div>
+    <div class="row strike"><span>Concert tickets</span><span class="num">₺2,500</span></div>
+    <div class="row"><span>Weekend trip</span><span class="num">₺15,000</span></div>
+    <div class="row strike"><span>Wireless earbuds</span><span class="num">₺3,800</span></div>
+    <div class="foot"><span class="lbl">Money saved</span><span class="num">₺56,900</span></div>
+  </div></div>
+</section>
+
+<!-- 02 — Split pane -->
+<section class="exhibit ex02" id="ex02">
+  <span class="tag">02/20 — split pane</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="rail-l">
+      <span class="lbl">Money saved</span>
+      <span class="fig num">₺56,900</span>
+    </div>
+    <div class="col-r">
+      <div class="row"><span>New guitar</span><span class="num">₺28,000</span></div>
+      <div class="row"><span>Sneakers</span><span class="num">₺4,200</span></div>
+      <div class="row strike"><span>Concert tickets</span><span class="num">₺2,500</span></div>
+      <div class="row"><span>Weekend trip</span><span class="num">₺15,000</span></div>
+      <div class="row strike"><span>Wireless earbuds</span><span class="num">₺3,800</span></div>
+      <div class="add">+ Add</div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 03 — Hero ring -->
+<section class="exhibit ex03" id="ex03">
+  <span class="tag">03/20 — hero ring</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="ringwrap">
+      <svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="54"/><circle class="fill" cx="60" cy="60" r="54"/></svg>
+      <div class="center"><div class="fig num">₺56,900</div><div class="lbl">saved</div></div>
+    </div>
+    <div class="list">
+      <div class="row"><span>New guitar</span><span class="num">₺28,000</span></div>
+      <div class="row"><span>Sneakers</span><span class="num">₺4,200</span></div>
+      <div class="row strike"><span>Concert tickets</span><span class="num">₺2,500</span></div>
+      <div class="row"><span>Weekend trip</span><span class="num">₺15,000</span></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 04 — Coin jar -->
+<section class="exhibit ex04" id="ex04">
+  <span class="tag">04/20 — coin jar</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="jar"><div class="neck"></div><div class="body"><div class="fill"></div></div></div>
+    <div class="fig num">₺56,900</div>
+    <div class="lbl">Money saved</div>
+    <div class="chips">
+      <div class="chip"><span>Guitar</span><span class="num">₺28,000</span></div>
+      <div class="chip"><span>Sneakers</span><span class="num">₺4,200</span></div>
+      <div class="chip strike"><span>Tickets</span><span class="num">₺2,500</span></div>
+      <div class="chip"><span>Trip</span><span class="num">₺15,000</span></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 05 — Two-tone card -->
+<section class="exhibit ex05" id="ex05">
+  <span class="tag">05/20 — two-tone</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="top"><span class="lbl">Money saved</span><div class="fig num">₺56,900</div></div>
+    <div class="bottom">
+      <div class="row"><span>New guitar</span><span class="num">₺28,000</span></div>
+      <div class="row"><span>Sneakers</span><span class="num">₺4,200</span></div>
+      <div class="row strike"><span>Concert tickets</span><span class="num">₺2,500</span></div>
+      <div class="row"><span>Weekend trip</span><span class="num">₺15,000</span></div>
+      <div class="add">+ Add</div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 06 — Grid tiles -->
+<section class="exhibit ex06" id="ex06">
+  <span class="tag">06/20 — grid tiles</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="head"><span class="lbl">Wishlist</span><span class="badge num">₺56,900</span></div>
+    <div class="grid">
+      <div class="tile"><span class="n">New guitar</span><span class="num">₺28,000</span></div>
+      <div class="tile"><span class="n">Sneakers</span><span class="num">₺4,200</span></div>
+      <div class="tile done strike"><span class="n">Concert tix</span><span class="num">₺2,500</span></div>
+      <div class="tile"><span class="n">Weekend trip</span><span class="num">₺15,000</span></div>
+      <div class="tile done strike"><span class="n">Earbuds</span><span class="num">₺3,800</span></div>
+      <div class="tile add">+ Add</div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 07 — Capsule wallet -->
+<section class="exhibit ex07" id="ex07">
+  <span class="tag">07/20 — capsule wallet</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="wallet"><span class="lbl">Money saved</span><div class="fig num">₺56,900</div></div>
+    <div class="cap"><span class="n">New guitar</span><span class="num">₺28,000</span></div>
+    <div class="cap"><span class="n">Sneakers</span><span class="num">₺4,200</span></div>
+    <div class="cap done strike"><span class="n">Concert tickets</span><span class="num">₺2,500</span></div>
+    <div class="cap"><span class="n">Weekend trip</span><span class="num">₺15,000</span></div>
+  </div></div>
+</section>
+
+<!-- 08 — Afford-meter -->
+<section class="exhibit ex08" id="ex08">
+  <span class="tag">08/20 — afford-meter</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="fig num">₺56,900</div>
+    <div class="lbl">Money saved</div>
+    <div class="meter"><div class="fill"></div><div class="tick" style="left:52%"></div><div class="tick" style="left:60%"></div><div class="tick" style="left:65%"></div></div>
+    <div class="sub"><span>0</span><span>Wishlist ₺53,500</span></div>
+    <div class="row"><span>New guitar</span><span class="num">₺28,000</span></div>
+    <div class="row strike"><span>Sneakers</span><span class="num">₺4,200</span></div>
+    <div class="row"><span>Weekend trip</span><span class="num">₺15,000</span></div>
+  </div></div>
+</section>
+
+<!-- 09 — Whisper stack -->
+<section class="exhibit ex09" id="ex09">
+  <span class="tag">09/20 — whisper</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="lbl">Money saved</div>
+    <div class="fig num">₺56,900</div>
+    <div class="rule"></div>
+    <div class="row"><span>New guitar</span><span class="num">₺28,000</span></div>
+    <div class="row"><span>Sneakers</span><span class="num">₺4,200</span></div>
+    <div class="row strike"><span>Concert tickets</span><span class="num">₺2,500</span></div>
+    <div class="row"><span>Weekend trip</span><span class="num">₺15,000</span></div>
+    <div class="add">+ Add</div>
+  </div></div>
+</section>
+
+<!-- 10 — Badge rows -->
+<section class="exhibit ex10" id="ex10">
+  <span class="tag">10/20 — badge rows</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="head"><div class="badge"><span class="lbl">Saved</span>₺56,900</div></div>
+    <div class="row"><span class="n">New guitar</span><span class="num">₺28,000</span></div>
+    <div class="row"><span class="n">Sneakers</span><span class="num">₺4,200</span></div>
+    <div class="row strike"><span class="check">✓</span><span class="n">Concert tickets</span><span class="num">₺2,500</span></div>
+    <div class="row"><span class="n">Weekend trip</span><span class="num">₺15,000</span></div>
+    <div class="add">+ Add</div>
+  </div></div>
+</section>
+
+<!-- 11 — Marker underline -->
+<section class="exhibit ex11" id="ex11">
+  <span class="tag">11/20 — marker</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="lbl">Money saved</div>
+    <div class="fig num">₺56,900</div>
+    <div class="tagrow"><span>New guitar</span><span class="num">₺28,000</span></div>
+    <div class="tagrow"><span>Sneakers</span><span class="num">₺4,200</span></div>
+    <div class="tagrow done strike"><span>Concert tickets</span><span class="num">₺2,500</span></div>
+    <div class="tagrow"><span>Weekend trip</span><span class="num">₺15,000</span></div>
+    <div class="add">+ Add</div>
+  </div></div>
+</section>
+
+<!-- 12 — Delta chips -->
+<section class="exhibit ex12" id="ex12">
+  <span class="tag">12/20 — delta chips</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="fig num">₺56,900</div>
+    <div class="lbl">Money saved</div>
+    <div class="row"><span>New guitar</span><span class="delta num">₺28,000</span></div>
+    <div class="row"><span>Sneakers</span><span class="delta num">₺4,200</span></div>
+    <div class="row strike"><span>Concert tickets</span><span class="delta done num">₺2,500</span></div>
+    <div class="row"><span>Weekend trip</span><span class="delta num">₺15,000</span></div>
+    <div class="add">+ Add</div>
+  </div></div>
+</section>
+
+<!-- 13 — Kanban stack -->
+<section class="exhibit ex13" id="ex13">
+  <span class="tag">13/20 — kanban</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="head"><span class="lbl">Wishlist</span><span class="fig">₺56,900 saved</span></div>
+    <div class="card"><span class="grab"><span></span><span></span><span></span></span><span class="n">New guitar</span><span class="num">₺28,000</span></div>
+    <div class="card"><span class="grab"><span></span><span></span><span></span></span><span class="n">Sneakers</span><span class="num">₺4,200</span></div>
+    <div class="card done strike"><span class="grab"><span></span><span></span><span></span></span><span class="n">Concert tickets</span><span class="num">₺2,500</span></div>
+    <div class="card"><span class="grab"><span></span><span></span><span></span></span><span class="n">Weekend trip</span><span class="num">₺15,000</span></div>
+  </div></div>
+</section>
+
+<!-- 14 — Standard financial -->
+<section class="exhibit ex14" id="ex14">
+  <span class="tag">14/20 — standard</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="balcard"><span class="lbl">Money saved</span><div class="fig num">₺56,900</div></div>
+    <div class="row"><span>New guitar</span><span class="num">₺28,000</span></div>
+    <div class="row"><span>Sneakers</span><span class="num">₺4,200</span></div>
+    <div class="row strike"><span>Concert tickets</span><span class="num">₺2,500</span></div>
+    <div class="row"><span>Weekend trip</span><span class="num">₺15,000</span></div>
+    <div class="add">+ Add</div>
+  </div></div>
+</section>
+
+<!-- 15 — Folder tab -->
+<section class="exhibit ex15" id="ex15">
+  <span class="tag">15/20 — folder tab</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="tab">Wishlist</div>
+    <div class="fig num">₺56,900 saved</div>
+    <div class="row"><span>New guitar</span><span class="num">₺28,000</span></div>
+    <div class="row"><span>Sneakers</span><span class="num">₺4,200</span></div>
+    <div class="row strike"><span>Concert tickets</span><span class="num">₺2,500</span></div>
+    <div class="row"><span>Weekend trip</span><span class="num">₺15,000</span></div>
+    <div class="add">+ Add</div>
+  </div></div>
+</section>
+
+<!-- 16 — Vertical timeline -->
+<section class="exhibit ex16" id="ex16">
+  <span class="tag">16/20 — timeline</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="float"><span class="lbl">Saved</span><span class="num">₺56,900</span></div>
+    <div class="lbl-top">Wishlist</div>
+    <div class="tl">
+      <div class="item"><span>New guitar</span><span class="num">₺28,000</span></div>
+      <div class="item"><span>Sneakers</span><span class="num">₺4,200</span></div>
+      <div class="item done strike"><span>Concert tickets</span><span class="num">₺2,500</span></div>
+      <div class="item"><span>Weekend trip</span><span class="num">₺15,000</span></div>
+      <div class="item done strike"><span>Wireless earbuds</span><span class="num">₺3,800</span></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- 17 — Ring card -->
+<section class="exhibit ex17" id="ex17">
+  <span class="tag">17/20 — ring card</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <span class="lbl">Money saved</span>
+    <div class="fig num">₺56,900</div>
+    <div class="row"><span>New guitar</span><span class="num">₺28,000</span></div>
+    <div class="row"><span>Sneakers</span><span class="num">₺4,200</span></div>
+    <div class="row strike"><span>Concert tickets</span><span class="num">₺2,500</span></div>
+    <div class="row"><span>Weekend trip</span><span class="num">₺15,000</span></div>
+    <div class="add">+ Add</div>
+  </div></div>
+</section>
+
+<!-- 18 — Bar share -->
+<section class="exhibit ex18" id="ex18">
+  <span class="tag">18/20 — bar share</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="fig num">₺56,900</div>
+    <div class="lbl">Money saved</div>
+    <div class="bar"><div class="top"><span>New guitar</span><span class="num">₺28,000</span></div><div class="track"><div class="fill" style="width:52%"></div></div></div>
+    <div class="bar"><div class="top"><span>Weekend trip</span><span class="num">₺15,000</span></div><div class="track"><div class="fill" style="width:28%"></div></div></div>
+    <div class="bar"><div class="top"><span>Sneakers</span><span class="num">₺4,200</span></div><div class="track"><div class="fill" style="width:8%"></div></div></div>
+    <div class="bar done"><div class="top"><span>Concert tickets</span><span class="num">₺2,500</span></div><div class="track"><div class="fill" style="width:5%"></div></div></div>
+  </div></div>
+</section>
+
+<!-- 19 — Two-column ledger -->
+<section class="exhibit ex19" id="ex19">
+  <span class="tag">19/20 — two-column</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="head">Wishlist</div>
+    <div class="row"><span class="n">New guitar</span><span class="num">₺28,000</span></div>
+    <div class="row"><span class="n">Sneakers</span><span class="num">₺4,200</span></div>
+    <div class="row strike"><span class="n">Concert tickets</span><span class="num">₺2,500</span></div>
+    <div class="row"><span class="n">Weekend trip</span><span class="num">₺15,000</span></div>
+    <div class="stamp"><span class="lbl">Saved</span><span class="num">₺56,900</span></div>
+  </div></div>
+</section>
+
+<!-- 20 — Piggy meter dial -->
+<section class="exhibit ex20" id="ex20">
+  <span class="tag">20/20 — meter dial</span>
+  <button class="dismiss" onclick="this.closest('.exhibit').hidden=true">hide</button>
+  <div class="stage"><div class="phone">
+    <div class="dial">
+      <svg viewBox="0 0 120 90"><path class="track" d="M10,90 A50,50 0 0 1 110,90"/><path class="fill" d="M10,90 A50,50 0 0 1 110,90"/></svg>
+      <div class="center"><div class="fig num">₺56,900</div><div class="lbl">saved</div></div>
+    </div>
+    <div class="list">
+      <div class="row"><span>New guitar</span><span class="num">₺28,000</span></div>
+      <div class="row"><span>Sneakers</span><span class="num">₺4,200</span></div>
+      <div class="row strike"><span>Concert tickets</span><span class="num">₺2,500</span></div>
+      <div class="row"><span>Weekend trip</span><span class="num">₺15,000</span></div>
+    </div>
+  </div></div>
+</section>
+
+</body>
+</html>
