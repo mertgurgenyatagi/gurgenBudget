@@ -13,6 +13,9 @@ dist-ssr
 *.local
 firebase-debug.log
 
+# Playwright MCP debugging artifacts
+.playwright-mcp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

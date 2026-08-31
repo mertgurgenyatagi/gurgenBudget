@@ -43,7 +43,6 @@ export function DailyLog() {
   const figures = computeMonth(items, days, buffer, viewedMonth)
   const total = daysInMonth(viewedMonth)
   const elapsed = elapsedDays(viewedMonth)
-  const atCurrentMonth = viewedMonth === currentMonth()
 
   function openEditor(day: number, existing: number | null) {
     setEditingDay(dayKey(viewedMonth, day))
@@ -65,11 +64,7 @@ export function DailyLog() {
             ‹
           </button>
           <span className="name">{monthLabel(viewedMonth)}</span>
-          <button
-            className="step"
-            onClick={() => setViewedMonth((m) => nextMonth(m))}
-            disabled={atCurrentMonth}
-          >
+          <button className="step" onClick={() => setViewedMonth((m) => nextMonth(m))}>
             ›
           </button>
         </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useData } from '../../data/DataContext'
 import type { Category, Item } from '../../lib/formulas'
 import type { MonthKey } from '../../lib/time'
@@ -44,7 +45,14 @@ export function ItemSheet({ category, item, month, onClose }: ItemSheetProps) {
     onClose()
   }
 
-  return (
+  // Portalled straight to <body>: the ring screens that open this sheet
+  // live inside .ring-track, which has an active `transform` (plus
+  // `will-change: transform` for the drag animation). Either one makes an
+  // element the containing block for any `position: fixed` descendant, so
+  // without the portal this sheet's scrim would size and position itself
+  // against the track's own (much wider, off-screen) box instead of the
+  // viewport.
+  return createPortal(
     <div className="sheet-scrim" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <input
@@ -97,6 +105,7 @@ export function ItemSheet({ category, item, month, onClose }: ItemSheetProps) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

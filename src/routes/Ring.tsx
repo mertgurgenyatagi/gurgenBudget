@@ -28,6 +28,9 @@ const N = PAGES.length
 const EASE = 'transform 380ms cubic-bezier(.22,.9,.32,1.1)'
 const DIST_THRESHOLD_RATIO = 0.22
 const FLICK_THRESHOLD = 0.5 // px/ms
+// Below this much horizontal movement, a pointerdown is treated as a tap on
+// whatever's underneath it, not the start of a swipe — see onPointerMove.
+const DRAG_START_THRESHOLD = 8 // px
 
 export function Ring() {
   const screenRef = useRef<HTMLDivElement>(null)
@@ -36,6 +39,7 @@ export function Ring() {
   const slotWidthRef = useRef(0)
   const dragState = useRef({
     dragging: false,
+    pointerId: null as number | null,
     startX: 0,
     baseTranslate: 0,
     currentTranslate: 0,
@@ -101,34 +105,53 @@ export function Ring() {
     const onPointerDown = (e: PointerEvent) => {
       normalizeIndex()
       const s = dragState.current
-      s.dragging = true
-      track.classList.add('dragging')
+      // Note the pointer down, but don't capture it yet — see onPointerMove.
+      // Capturing here unconditionally used to steal every click in the
+      // ring: once an element has pointer capture, the browser retargets
+      // both the pointerup *and* the click it synthesizes to the capturing
+      // element, not whatever's visually under the pointer. That made
+      // every button/input inside a ring slot unclickable, invisible as
+      // long as ring slots had nothing interactive in them.
+      s.pointerId = e.pointerId
+      s.dragging = false
       s.startX = e.clientX
       s.lastX = e.clientX
       s.lastT = performance.now()
       s.velocity = 0
       s.baseTranslate = targetFor(indexRef.current)
       s.currentTranslate = s.baseTranslate
-      setTransform(s.baseTranslate, false)
-      track.setPointerCapture(e.pointerId)
     }
 
     const onPointerMove = (e: PointerEvent) => {
       const s = dragState.current
-      if (!s.dragging) return
+      if (s.pointerId !== e.pointerId) return
       const now = performance.now()
       const dt = now - s.lastT
       if (dt > 0) s.velocity = (e.clientX - s.lastX) / dt
       s.lastX = e.clientX
       s.lastT = now
       const delta = e.clientX - s.startX
+
+      if (!s.dragging) {
+        if (Math.abs(delta) < DRAG_START_THRESHOLD) return
+        // Crossed the deadzone — this is a real swipe now, not a tap.
+        // Capture starts here, once we're sure, so a tap's own click still
+        // fires normally on whatever the user actually pressed.
+        s.dragging = true
+        track.classList.add('dragging')
+        track.setPointerCapture(e.pointerId)
+      }
+
       s.currentTranslate = s.baseTranslate + delta
       setTransform(s.currentTranslate, false)
     }
 
-    const onPointerUp = () => {
+    const onPointerUp = (e: PointerEvent) => {
       const s = dragState.current
-      if (!s.dragging) return
+      if (s.pointerId !== e.pointerId) return
+      s.pointerId = null
+      if (!s.dragging) return // never became a drag — let the tap's click through
+
       s.dragging = false
       track.classList.remove('dragging')
 

@@ -27,7 +27,6 @@ export function History() {
   const [editing, setEditing] = useState<Editing | null>(null)
 
   const figures = computeMonth(items, days, buffer, month)
-  const atCurrentMonth = month === currentMonth()
   const wishlistItems = itemsInMonth(items, month, 'wishlist')
 
   return (
@@ -35,9 +34,7 @@ export function History() {
       <div className="history-head">
         <button onClick={() => setMonth((m) => prevMonth(m))}>‹</button>
         <span>{monthLabel(month)}</span>
-        <button onClick={() => setMonth((m) => nextMonth(m))} disabled={atCurrentMonth}>
-          ›
-        </button>
+        <button onClick={() => setMonth((m) => nextMonth(m))}>›</button>
       </div>
 
       <div className="history-summary">
