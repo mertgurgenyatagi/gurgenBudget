@@ -68,13 +68,12 @@ Daily Allowance = ((Surplus − Wishlist) / days in month) − Buffer
 ## The Daily Log
 
 - Once a day, the user logs a single number: the **raw, whole change in their bank balance** for that day. No mental subtraction of rent, bills, or anything else — whatever the bank shows is what gets typed in.
-- **Sign convention, settled at build time:** the number is stored and typed as the day's **spend** — how far the balance *dropped*. A day the balance rose is a negative entry, which is rare enough that the common case never needs a minus sign. This is what lets the Calendar show every figure unsigned.
 - A day with **no entry counts as zero spent**.
 - Logged days can be corrected later at any time, **including days in past or closed months**, with no confirmation warning.
 - **Logging is inherently retrospective.** The user will never log the current day in real time — late-night orders land after the day is functionally over for them. There is therefore **no same-day "log today" fast path**. The fast path is catching up on unlogged days.
 - **Day boundaries use a fixed timezone (Turkey time), always** — never the device's local time. This keeps the numbers stable regardless of where the user is when they log.
 - **The app opens to a dashboard first** (this month's numbers, current Daily Allowance), with logging one tap away — not straight into a logging flow.
-- The exact logging interaction was a **UI design decision, deferred to implementation** — not a spec question. It was settled by the Calendar Exhibop: a **calendar-style grid of day boxes**, four per row, rather than a sequential "next unlogged day" prompt. Either way, an unlogged day still counts as zero spent until corrected.
+- The exact logging interaction (e.g. a calendar-style grid of day boxes rather than a sequential "next unlogged day" prompt) is a **UI design decision, deferred to implementation** — not a spec question. Whatever the layout, an unlogged day still counts as zero spent until corrected.
 
 ---
 
@@ -130,19 +129,19 @@ Money Saved = Surplus − (sum of actual daily logs so far) − (projected spend
 - A purchased item **stays visible in the list, crossed out**. It is not moved to a separate list.
 - Marking purchased is **reversible** — it can be un-marked if done by mistake.
 - Marking purchased simply deducts the item's **existing stored amount**. There is no separate "confirm actual amount paid" step. If the estimate was wrong, edit the item's amount the normal way, like any other item.
-- **Confirmed: purchases leave a record past month-end.** Wishlist items don't carry forward into the next month, but each month's Wishlist (including which items were marked purchased) is retained and shown when browsing that month — the same way Base items are. No separate Purchase History screen; browsing into a past month (now via **Settings → Past months**) shows its full Wishlist as it stood, purchased items crossed out in context.
+- **Confirmed: purchases leave a record past month-end, surfaced through History.** Wishlist items don't carry forward into the next month, but each month's Wishlist (including which items were marked purchased) is retained and shown when browsing that month in History — the same way Base items are. No separate Purchase History screen; browsing into a past month shows its full Wishlist as it stood, purchased items crossed out in context.
 
 ---
 
 ## Screens Implied By The Spec
 
-All designed and built — see [The Build](#the-build). The spec implied at minimum:
+Not yet designed, but the spec implies at minimum:
 
 - **Dashboard / home** — the default screen on open: this month's numbers and current Daily Allowance, with logging one tap away. No first-run onboarding — even on a brand-new account, it's the same empty dashboard, figured out as you go.
-- **Calendar** (the Daily log) — the unlogged-days catch-up flow, plus (from the build) month-stepping and past-day editing. The day-grid-vs-sequential-prompt question was settled by the Exhibop below: a day grid.
+- **Calendar** (the Daily log) — the unlogged-days catch-up flow. Exact interaction (day-grid vs. sequential prompt) is a design decision, not yet made.
 - **Base Income**, **Flex Income**, **Base Spend**, **Flex Spend** — four separate screens (not one combined "Month setup" screen). Items added/edited one at a time. Flex Spend shares its add entry point with Wishlist, via a list toggle.
 - **Wishlist** — the Wishlist list (flat, unordered) and Money Saved together.
-- ~~**History**~~ — **dissolved at build time.** Rather than a screen of its own, its two jobs were split: stepping through months and editing past days happens in the **Calendar**, and the reference figures for a past month (its Base/Flex totals *and* its Wishlist, purchased items crossed out) are tucked behind **Settings → Past months**. The user's call: *"the month selection past day editing can just live inside the calendar. The rest of the history information is super useless and niche, so tuck it away in settings somewhere."* Past months stay fully editable either way — the current-month/history split was always display-only.
+- **History** — past months, still fully editable; each past month shows its own Base/Flex figures *and* its own Wishlist (purchased items crossed out in context). Navigated via a direct picker (jump to any month), not just back/forward. Separated from the current month by display only. Outside the swipe ring below — reached its own way, not by swiping.
 - **Settings** — a visible, dedicated screen. The Buffer lives here (not edited inline elsewhere), alongside things like sign-out.
 
 ---
@@ -156,9 +155,9 @@ From Dashboard:
 - **swipe right once** → Calendar
 - **swipe left once** → Wishlist
 - **swipe left twice** → Settings
-- continuing left past Settings → the four Month Setup screens, in spec order: Base Income, Flex Income, Base Spend, Flex Spend — then back around to Calendar, closing the ring.
+- continuing left past Settings → the four Month Setup screens (Base Income, Flex Income, Base Spend, Flex Spend) — internal order among these four not yet decided — then back around to Calendar, closing the ring.
 
-The ring is the whole of navigation. There is no History screen to sit outside it — month-stepping lives in the Calendar and past-month reference behind Settings, both already on the ring. Swiping changes no URL: the ring is in-memory state, chosen for a seamless, app-like feel over URL-addressable screens.
+History is not on the ring; it keeps the direct month-picker navigation described above.
 
 ---
 
@@ -203,67 +202,17 @@ The ring is the whole of navigation. There is no History screen to sit outside i
 
 ---
 
-## Build & Integration Decisions
-
-Decided via the **Build Questop** operation — a separate Questop cycle scoped to implementation details for the `build-and-integration` branch, distinct from the original requirements-gathering rounds. See [build_questionnaires/](build_questionnaires/).
-
-### Round 1 — Data model, sync, and dev environment
-
-- **Base item history:** stored as a list field inside the item's own document, not a separate collection — expected volume per item is small.
-- **Month computation:** always recomputed fresh from the raw items, never cached or snapshotted — keeps every month correct by construction after a retroactive edit, matching Firestore's lack of any "closed month" concept.
-- **Data sync:** live Firestore listeners (`onSnapshot`), not one-time fetches — the screen updates itself instantly from any source (this app, another tab, another device).
-- **Day-boundary implementation:** a small hand-written fixed UTC+3 offset, no timezone library — Turkey has had no daylight saving since 2016, so the offset never changes.
-- **Amount inputs:** plain number fields, formatted for display only — no live-formatting-as-you-type input.
-- **Swipeable ring:** hand-rolled on the browser's own scroll-snap behavior, not a carousel library.
-- **Testing:** automated tests cover the money formulas (Surplus, Daily Allowance, Money Saved) only; screens are checked by hand.
-- **Dev environment:** built against the local Firebase Emulator Suite, not the live `gurgenbudget` Firestore project.
-- **State management:** plain React (Context + hooks), no state-management library.
-- **Write-failure handling:** a simple inline "didn't save, try again" message — no offline queue or auto-retry system.
-
-### Round 2 — Document shapes, styling, and navigation
-
-- **Item collections:** one shared `items` collection with a category field (Base Income / Flex Income / Base Spend / Flex Spend / Wishlist), not five separate collections.
-- **Daily log:** one Firestore document per day, not one document per month holding all its days.
-- **Buffer history:** the Buffer gets its own forward-only history, the same mechanism as Base items — a single current value can't represent what the Buffer used to be for an old month.
-- **Soft delete:** a Flex Income/Spend or Wishlist item, on deletion, gets a `deleted` flag on the same document (filtered out of normal views) rather than moving to a separate trash collection.
-- **Styling:** plain hand-written CSS, matching how the Exhibop mockups were built — no Tailwind.
-- **Firestore access:** the Firebase SDK directly inside small custom hooks — no data-fetching library (e.g. TanStack Query) layered on top.
-- **Optimistic updates:** the screen updates immediately (marking a Wishlist item purchased, logging a day) and quietly corrects itself if the save fails, rather than waiting for Firestore to confirm first.
-- **Ring navigation:** overridden from the initial recommendation — the swipeable ring (Dashboard, Calendar, Wishlist, Settings, Month Setup) does **not** change the browser URL/route. It's purely in-memory UI state, always resetting to Dashboard on reload, in service of a seamless, app-like feel rather than URL-addressable screens.
-- **Number formatting:** the browser's built-in `Intl.NumberFormat`, not a hand-written formatter.
-- **Security rules:** stay ownership-only (`/users/{uid}/**`) — no data-shape enforcement at the rules level.
-
-### Round 3 — Scope and shape (final round)
-
-Cut to six questions at the user's request — *"the more technical questions you can handle… ask me things that are actually crucial and big picture and unclear."*
-
-- **Getting real data in:** typed by hand, one item at a time, through the same "+ Add" flow as everyday use. No bulk/CSV import feature for the first day.
-- **Offline:** supported. Firestore's persistent local cache is on, so the app reads from cache with no signal and queues writes until the connection is back.
-- **Build sequencing:** overridden from the recommendation — *"we'll just go YOLO and tachyon build the app in its entirety"*, in one pass rather than incremental reviewable pieces.
-- **History:** dissolved as a screen — month-stepping and past-day editing moved into the Calendar, past-month reference tucked behind Settings. See [Screens Implied By The Spec](#screens-implied-by-the-spec).
-- **Definition of done:** *"who cares"* — left to judgement. Taken as: real data wired through, formulas correct, polish follows once the app is in daily use.
-- **Deploying:** built in full first, deployed on the user's word rather than screen by screen as pieces landed.
-
----
-
 ## Open Questions
 
-None outstanding. Two full Questop cycles are answered and folded into the sections above: the original requirements-gathering rounds 1–3 (see [initial_questionnaires/](initial_questionnaires/)) and the three **Build Questop** rounds covering implementation (see [build_questionnaires/](build_questionnaires/) and [Build & Integration Decisions](#build--integration-decisions)).
-
-Both former loose ends are now resolved:
-
-- **Verified in a real browser.** The app's rendering and the ring's swipe behaviour have been checked and confirmed working.
-- **Google sign-in on the live domain is confirmed.** `mertgurgenyatagi.github.io` was added to Firebase Console under Authentication → Settings → Authorized domains, and sign-in works on the live deploy.
+None outstanding. Rounds 1–3 of the **Questop** operation are answered — see [initial_questionnaires/](initial_questionnaires/) — and every resolution is folded into the sections above.
 
 ---
 
 ## Status
 
-**The app is built, deployed, and live.** What follows is the history of how it got there.
+Requirements-gathering via the **Questop** operation (defined in [CLAUDE_OPERATIONS.md](CLAUDE_OPERATIONS.md)) is complete after 3 rounds — trimmed down from the original 10-round default once the core spec gaps and architecture settled.
 
-Requirements-gathering via the **Questop** operation (defined in [CLAUDE_OPERATIONS.md](CLAUDE_OPERATIONS.md)) is complete after 3 rounds — trimmed down from the original 10-round default once the core spec gaps and architecture settled. A second Questop cycle, **Build Questop**, later settled the implementation questions in 3 more rounds, likewise trimmed from 10.
-
-Project scaffold was put in place first: Vite + React + TypeScript, React Router, Firebase (Auth + Firestore, config read from `VITE_FIREBASE_*` env vars — see [.env.example](.env.example)), and a GitHub Actions workflow ([.github/workflows/deploy.yml](.github/workflows/deploy.yml)) that builds and deploys to GitHub Pages on every push to `main`. The six screens existed as stub components under `src/routes/` with no logic. Both the stubs and React Router have since been replaced — see [The Build](#the-build) below.
+Project scaffold is in place: Vite + React + TypeScript, React Router (`HashRouter`, to sidestep GitHub Pages' deep-link 404 issue with no extra config), Firebase (Auth + Firestore, config read from `VITE_FIREBASE_*` env vars — see [.env.example](.env.example)), and a GitHub Actions workflow ([.github/workflows/deploy.yml](.github/workflows/deploy.yml)) that builds and deploys to GitHub Pages on every push to `main`. Google sign-in gates all routes except `/sign-in`. The six screens from [Screens Implied By The Spec](#screens-implied-by-the-spec) exist as stub components under `src/routes/` with no real logic yet — no formulas, no Firestore reads/writes, no actual data model. No application logic has been written.
 
 **The Firebase project is live**, created via the Firebase CLI: project ID `gurgenbudget`, Firestore in `europe-west3`. `firestore.rules` scopes every document to `/users/{uid}/**`, readable/writable only by that uid — any future data model must nest under that path. Google sign-in is enabled in the Firebase console, and the 6 `VITE_FIREBASE_*` values are set as GitHub repository secrets, so the [deploy workflow](.github/workflows/deploy.yml) can build and publish to Pages on push to `main`.
 
@@ -281,30 +230,4 @@ Design exploration for the Wishlist screen and Money Saved, plus two screens bey
 - **Calendar** (the Daily Log) — 20 first looks at [exhibop/calendar.html](exhibop/calendar.html), split between grid-shaped and sequential-catch-up-shaped approaches to leave the previously open day-grid-vs-sequential-prompt question genuinely explored. Design **#01, classic month grid** was picked, with three build-time refinements confirmed: 4 rectangles per row (not 7), no minus signs on logged amounts, and a variable-intensity tint per day — red for overspent, green for underspent against the Daily Allowance — using the palette's existing `--short` and `--accent` tokens rather than new colors.
 - **Settings** — 20 first looks at [exhibop/settings.html](exhibop/settings.html), exploring arrangements of the Buffer figure and the Account/Sign-out row (content is intentionally spare, per spec). Design **#03, two-tone** — a dark account band over a light Buffer/sign-out panel — was picked.
 
-That work is merged into `main`. A fresh branch, **`build-and-integration`**, was then cut from `main` for the build itself.
-
----
-
-## The Build
-
-The app is built and deployed. Three rounds of **Build Questop** settled the implementation questions (recorded above), then the whole thing was built in one pass on `build-and-integration` and merged into `main`.
-
-**Structure.** `src/lib/` holds the pure logic — [time.ts](src/lib/time.ts) (fixed UTC+3 day boundaries; today is never loggable, since logging is retrospective), [money.ts](src/lib/money.ts) (whole lira via `Intl.NumberFormat`), [types.ts](src/lib/types.ts), and [formulas.ts](src/lib/formulas.ts) (Surplus, Daily Allowance, Money Saved, and the per-month amount resolution that makes every month compute from what was true during it). `src/data/DataContext.tsx` owns Firestore; `src/ui/` holds the ring and sheets; `src/screens/` holds the five screens.
-
-**Data model**, all under `/users/{uid}/`:
-
-- `items/{id}` — one collection for all five categories, with a `category` field. Each item carries `history: [{ amount, until }]` (what the amount used to be, and through which month), `createdMonth` (base items never backfill), `deletedMonth` (base deletion applies forward only; past months keep the item), `month` (the single month a flex/wishlist item belongs to), `deleted` (the quiet safety net for flex/wishlist), and `purchased` (wishlist only).
-- `days/{YYYY-MM-DD}` — one document per day, holding that day's spend. A missing document is an unlogged day, which counts as zero.
-- `meta/buffer` — the Buffer plus its own `history`, using the same forward-only mechanism as base items.
-
-**Behavior.** Live `onSnapshot` listeners keep every screen current; Firestore's offline persistence covers patchy signal, and its latency compensation gives optimistic updates for free. Month rollover is lazy — checked on open and on window focus.
-
-**Navigation.** [src/ui/Ring.tsx](src/ui/Ring.tsx) implements the ring: browser-native scroll-snap, three panels mounted at a time (previous, current, next), silently re-centred after each swipe so the ring is endless. It changes no URLs — `react-router-dom` was removed entirely, since sign-in is the only real state boundary left.
-
-**Screens** are built in their confirmed Exhibop designs: Dashboard (#17, dark hero card flanked by two satellites), Calendar (#01 grid at 4 per row, no minus signs, proportional red/green tint against the Daily Allowance), Wishlist (#01 torn-edge ledger stub with Money Saved as the footer figure), the four Month Setup screens (#8 bar share), and Settings (#03 two-tone). Past-month figures live tucked inside Settings rather than on a screen of their own; month-stepping and past-day editing happen in the Calendar.
-
-**Tests** are deliberately sparse — [src/lib/formulas.test.ts](src/lib/formulas.test.ts), 11 cases under Vitest (`npm test`), covering the formulas and the historic-amount rules. The load-bearing one: spending exactly the Daily Allowance every day leaves Money Saved at `Wishlist total + (Buffer × days)`, and marking a Wishlist item purchased consumes Money Saved without moving the Daily Allowance.
-
-**Local development** points at live Firestore by default; set `VITE_USE_EMULATOR=true` in `.env.local` to use the Firebase Emulator Suite instead.
-
-**The app is live at [mertgurgenyatagi.github.io/gurgenBudget](https://mertgurgenyatagi.github.io/gurgenBudget/).** GitHub Pages itself had never actually been enabled on the repo, so every deploy run since the scaffold had been failing at `actions/configure-pages` — the builds passed, but there was nothing to publish to. Pages is now enabled with GitHub Actions as its source, and the workflow deploys on every push to `main`.
+That work is merged into `main`. A fresh branch, **`build-and-integration`**, was cut from `main` to begin the next phase: implementing the data model and the core formulas, still true for every screen — Dashboard, Month Setup, Wishlist, Calendar, and Settings alike — since no application logic has been written yet.
