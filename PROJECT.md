@@ -285,3 +285,5 @@ The app is built and deployed. Three rounds of **Build Questop** settled the imp
 **Tests** are deliberately sparse — [src/lib/formulas.test.ts](src/lib/formulas.test.ts), 11 cases under Vitest (`npm test`), covering the formulas and the historic-amount rules. The load-bearing one: spending exactly the Daily Allowance every day leaves Money Saved at `Wishlist total + (Buffer × days)`, and marking a Wishlist item purchased consumes Money Saved without moving the Daily Allowance.
 
 **Local development** points at live Firestore by default; set `VITE_USE_EMULATOR=true` in `.env.local` to use the Firebase Emulator Suite instead.
+
+**The app is live at [mertgurgenyatagi.github.io/gurgenBudget](https://mertgurgenyatagi.github.io/gurgenBudget/).** GitHub Pages itself had never actually been enabled on the repo, so every deploy run since the scaffold had been failing at `actions/configure-pages` — the builds passed, but there was nothing to publish to. Pages is now enabled with GitHub Actions as its source, and the workflow deploys on every push to `main`.
