@@ -1,8 +1,5 @@
+import { RingPage } from './pages/RingPage'
+
 export function History() {
-  return (
-    <section>
-      <h1>History</h1>
-      <p>Past months, fully editable, navigated via a direct month picker.</p>
-    </section>
-  )
+  return <RingPage label="History" tone="oklch(85% .015 127)" />
 }

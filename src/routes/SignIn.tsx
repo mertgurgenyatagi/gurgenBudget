@@ -10,10 +10,16 @@ export function SignIn() {
   if (user) return <Navigate to="/" replace />
 
   return (
-    <main>
-      <h1>gurgenBudget</h1>
+    <main
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100dvh',
+      }}
+    >
       <button onClick={() => signInWithPopup(auth, googleProvider)}>
-        Sign in with Google
+        Sign in via Google
       </button>
     </main>
   )

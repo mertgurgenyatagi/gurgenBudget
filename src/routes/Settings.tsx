@@ -1,8 +1,5 @@
+import { RingPage } from './pages/RingPage'
+
 export function Settings() {
-  return (
-    <section>
-      <h1>Settings</h1>
-      <p>The Buffer lives here.</p>
-    </section>
-  )
+  return <RingPage label="Settings" tone="oklch(63% .085 133)" />
 }

@@ -1,8 +1,5 @@
+import { RingPage } from './pages/RingPage'
+
 export function Wishlist() {
-  return (
-    <section>
-      <h1>Wishlist</h1>
-      <p>The Wishlist list and Money Saved.</p>
-    </section>
-  )
+  return <RingPage label="Wishlist" tone="oklch(78% .05 128)" />
 }
