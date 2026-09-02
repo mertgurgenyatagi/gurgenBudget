@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest'
 import {
   amountInMonth,
   categoryTotal,
+  computeMonth,
   dailyAllowance,
+  dynamicAllowance,
   moneySaved,
   remainingDays,
   spendSoFar,
   surplus,
+  type BufferSettings,
   type Item,
 } from './formulas'
 
@@ -188,5 +191,45 @@ describe('moneySaved — future-day logging', () => {
     const saved = moneySaved(1000, days, '2026-04', allowance, at)
     // remaining = 20 (21 minus the pre-logged day), spendSoFar = -500
     expect(saved).toBe(1000 + -500 - allowance * 20)
+  })
+})
+
+describe('dynamicAllowance', () => {
+  it('redistributes the remaining flat budget over what is left', () => {
+    // flat 100/day, 30-day month, net -200 spent so far, 20 days left unlogged.
+    const result = dynamicAllowance(100, 30, -200, 20)
+    expect(result).toBeCloseTo((100 * 30 - 200) / 20)
+  })
+
+  it('falls back to the flat figure once nothing is left to redistribute', () => {
+    expect(dynamicAllowance(100, 30, -500, 0)).toBe(100)
+  })
+
+  it('equals the flat figure at the very start of the month, nothing spent yet', () => {
+    expect(dynamicAllowance(100, 30, 0, 30)).toBeCloseTo(100)
+  })
+})
+
+describe('computeMonth — displayAllowance', () => {
+  it('matches dailyAllowance when Dynamic Allowance is off', () => {
+    const items = [
+      item({ id: 'a', category: 'baseIncome', amount: 9000 }),
+      item({ id: 'b', category: 'baseSpend', amount: 3000 }),
+    ]
+    const buffer: BufferSettings = { percent: 0, mode: 'slice', history: [], dynamicAllowance: false }
+    const figures = computeMonth(items, new Map(), buffer, '2026-04')
+    expect(figures.displayAllowance).toBe(figures.dailyAllowance)
+  })
+
+  it('diverges from dailyAllowance when Dynamic Allowance is on and money has been spent', () => {
+    const items = [
+      item({ id: 'a', category: 'baseIncome', amount: 9000 }),
+      item({ id: 'b', category: 'baseSpend', amount: 3000 }),
+    ]
+    const buffer: BufferSettings = { percent: 0, mode: 'slice', history: [], dynamicAllowance: true }
+    const days = new Map<string, number>([['2026-04-01', -1000]])
+    const at = new Date('2026-04-05T00:00:00Z')
+    const figures = computeMonth(items, days, buffer, '2026-04', at)
+    expect(figures.displayAllowance).not.toBe(figures.dailyAllowance)
   })
 })

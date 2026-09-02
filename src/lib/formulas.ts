@@ -49,6 +49,7 @@ export interface BufferSettings {
   percent: number
   mode: BufferMode
   history: BufferHistoryEntry[]
+  dynamicAllowance: boolean
 }
 
 export interface MonthFigures {
@@ -59,6 +60,7 @@ export interface MonthFigures {
   wishlist: number
   surplus: number
   dailyAllowance: number
+  displayAllowance: number
   moneySaved: number
   bufferPercent: number
   bufferMode: BufferMode
@@ -192,6 +194,26 @@ export function moneySaved(
   return surplusValue + spendSoFar(days, month) - allowance * remainingDays(days, month, at)
 }
 
+/**
+ * Recomputes today's rate so the month's total projected spend still
+ * lands on flat × daysInMonth, redistributing what's left over whatever
+ * days remain unlogged. Falls back to the flat figure once there's
+ * nothing left to redistribute — which also makes it degrade to the flat
+ * figure automatically for any month other than the one currently in
+ * progress (a past month has remaining = 0; a future month with nothing
+ * pre-logged has remaining = totalDays, spendSoFar = 0, so the formula
+ * collapses back to `flat`).
+ */
+export function dynamicAllowance(
+  flat: number,
+  totalDays: number,
+  spendSoFarValue: number,
+  remaining: number,
+): number {
+  if (remaining <= 0) return flat
+  return (flat * totalDays + spendSoFarValue) / remaining
+}
+
 /** Everything a month's screens need, computed fresh from the raw items. */
 export function computeMonth(
   items: Item[],
@@ -210,6 +232,8 @@ export function computeMonth(
   const { percent, mode } = resolveBuffer(buffer, month)
   const allowance = dailyAllowance(surplusValue, wishlist, month, percent, mode)
   const saved = moneySaved(surplusValue, days, month, allowance, at)
+  const remaining = remainingDays(days, month, at)
+  const dynamic = dynamicAllowance(allowance, daysInMonth(month), spendSoFar(days, month), remaining)
 
   return {
     baseIncome,
@@ -219,6 +243,7 @@ export function computeMonth(
     wishlist,
     surplus: surplusValue,
     dailyAllowance: allowance,
+    displayAllowance: buffer.dynamicAllowance ? dynamic : allowance,
     moneySaved: saved,
     bufferPercent: percent,
     bufferMode: mode,
