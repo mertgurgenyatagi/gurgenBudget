@@ -1,6 +1,5 @@
 import { signOut } from 'firebase/auth'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { useData } from '../data/DataContext'
 import { auth } from '../firebase'
@@ -57,10 +56,6 @@ export function Settings() {
             Of full slice
           </button>
         </div>
-        <Link className="aside" to="/history">
-          <span>History</span>
-          <span>›</span>
-        </Link>
         <div className="signout" onClick={() => signOut(auth)}>
           Sign out
         </div>
