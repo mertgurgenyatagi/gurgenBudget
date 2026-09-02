@@ -38,15 +38,20 @@ export function DailyLog() {
   const figures = computeMonth(items, days, buffer, month)
   const total = daysInMonth(month)
 
+  // The field's sign convention is inverted from the stored value's: a
+  // plain typed number means "spent this much" (stored negative, matching
+  // spendSoFar/moneySaved/tintFor's raw-balance-change semantics below), so
+  // only the rarer money-in day needs an explicit "-" — mirroring
+  // amountFor's display convention instead of fighting it.
   function openEditor(day: number, existing: number | null) {
     setEditingDay(dayKey(month, day))
-    setDraft(existing === null ? '' : String(existing))
+    setDraft(existing === null ? '' : String(-existing))
   }
 
   function commit() {
     if (!editingDay) return
     const trimmed = draft.trim()
-    logDay(editingDay, trimmed === '' ? null : Math.round(Number(trimmed)))
+    logDay(editingDay, trimmed === '' ? null : -Math.round(Number(trimmed)))
     setEditingDay(null)
   }
 
