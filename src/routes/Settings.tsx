@@ -7,7 +7,7 @@ import { currentMonth } from '../lib/time'
 
 export function Settings() {
   const { user } = useAuth()
-  const { buffer, setBuffer } = useData()
+  const { buffer, setBuffer, setDynamicAllowance } = useData()
   const [percent, setPercent] = useState(String(buffer.percent))
 
   // Firestore's live value arrives asynchronously, after this component has
@@ -55,6 +55,14 @@ export function Settings() {
           >
             Of full slice
           </button>
+        </div>
+        <div className="row">
+          <span>Dynamic Allowance</span>
+          <input
+            type="checkbox"
+            checked={buffer.dynamicAllowance}
+            onChange={(e) => setDynamicAllowance(e.target.checked)}
+          />
         </div>
         <div className="signout" onClick={() => signOut(auth)}>
           Sign out
