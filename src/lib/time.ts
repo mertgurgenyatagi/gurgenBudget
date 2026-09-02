@@ -65,14 +65,3 @@ export function monthLabel(month: MonthKey): string {
   const [y, m] = month.split('-').map(Number)
   return `${MONTH_NAMES[m - 1]} ${y}`
 }
-
-/**
- * How many days of `month` are loggable so far. Logging is inherently
- * retrospective — today is never loggable, since the day isn't over yet.
- */
-export function elapsedDays(month: MonthKey, at?: Date): number {
-  const now = currentMonth(at)
-  if (month < now) return daysInMonth(month)
-  if (month > now) return 0
-  return Math.max(0, todayDayOfMonth(at) - 1)
-}

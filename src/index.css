@@ -303,6 +303,7 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 1px;
+  cursor: pointer;
 }
 
 .cal .cell .d {
@@ -326,14 +327,6 @@ html, body {
 
 .cal .cell.unlogged .d {
   color: var(--accent);
-}
-
-.cal .cell.future {
-  opacity: .35;
-}
-
-.cal .cell:not(.future) {
-  cursor: pointer;
 }
 
 .cal .cell .edit {

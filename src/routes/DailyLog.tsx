@@ -1,22 +1,17 @@
 import { useState } from 'react'
 import { useData } from '../data/DataContext'
 import { computeMonth } from '../lib/formulas'
-import {
-  currentMonth,
-  dayKey,
-  daysInMonth,
-  elapsedDays,
-  monthLabel,
-  nextMonth,
-  prevMonth,
-  type DayKey,
-} from '../lib/time'
+import { dayKey, daysInMonth, type DayKey } from '../lib/time'
+import { useViewedMonth } from '../data/ViewedMonthContext'
 import { lira } from '../money'
+import { MonthStepper } from './pages/MonthStepper'
 
-// A logged day is tinted by how far it lands from the allowance: rust when
-// overspent, moss when underspent, intensity scaled by the gap. Fully
+// A logged day is tinted by how far it lands from the flat allowance: rust
+// when overspent, moss when underspent, intensity scaled by the gap. Fully
 // saturated red sits three allowances past the line; fully saturated green
-// is a day that cost nothing at all.
+// is a day that cost nothing at all. Always compares against the flat
+// allowance, never the Dynamic Allowance figure — see formulas.ts's note
+// on why Dynamic Allowance must stay purely a display concern.
 function tintFor(change: number, allowance: number): string {
   const spent = -change
   const scale = Math.abs(allowance) || 1
@@ -36,16 +31,15 @@ function amountFor(change: number): string {
 
 export function DailyLog() {
   const { items, days, buffer, logDay } = useData()
-  const [viewedMonth, setViewedMonth] = useState(currentMonth())
+  const { month } = useViewedMonth()
   const [editingDay, setEditingDay] = useState<DayKey | null>(null)
   const [draft, setDraft] = useState('')
 
-  const figures = computeMonth(items, days, buffer, viewedMonth)
-  const total = daysInMonth(viewedMonth)
-  const elapsed = elapsedDays(viewedMonth)
+  const figures = computeMonth(items, days, buffer, month)
+  const total = daysInMonth(month)
 
   function openEditor(day: number, existing: number | null) {
-    setEditingDay(dayKey(viewedMonth, day))
+    setEditingDay(dayKey(month, day))
     setDraft(existing === null ? '' : String(existing))
   }
 
@@ -59,23 +53,14 @@ export function DailyLog() {
   return (
     <div className="screen cal">
       <div className="head">
-        <div className="month">
-          <button className="step" onClick={() => setViewedMonth((m) => prevMonth(m))}>
-            ‹
-          </button>
-          <span className="name">{monthLabel(viewedMonth)}</span>
-          <button className="step" onClick={() => setViewedMonth((m) => nextMonth(m))}>
-            ›
-          </button>
-        </div>
-        <span className="allw num">Allowance {lira(figures.dailyAllowance)}/day</span>
+        <MonthStepper />
+        <span className="allw num">Allowance {lira(figures.displayAllowance)}/day</span>
       </div>
       <div className="grid">
         {Array.from({ length: total }, (_, i) => i + 1).map((day) => {
-          const key = dayKey(viewedMonth, day)
+          const key = dayKey(month, day)
           const change = days.get(key) ?? null
-          const future = day > elapsed
-          const state = future ? 'future' : change === null ? 'unlogged' : 'logged'
+          const state = change === null ? 'unlogged' : 'logged'
           const editing = editingDay === key
 
           return (
@@ -83,7 +68,7 @@ export function DailyLog() {
               className={`cell ${state}`}
               key={day}
               style={change !== null ? { background: tintFor(change, figures.dailyAllowance) } : undefined}
-              onClick={() => !future && !editing && openEditor(day, change)}
+              onClick={() => !editing && openEditor(day, change)}
             >
               <span className="d">{day}</span>
               {editing ? (
@@ -102,9 +87,7 @@ export function DailyLog() {
                   }}
                 />
               ) : (
-                <span className="v num">
-                  {change !== null ? amountFor(change) : state === 'unlogged' ? 'log' : ''}
-                </span>
+                <span className="v num">{change !== null ? amountFor(change) : 'log'}</span>
               )}
             </div>
           )
