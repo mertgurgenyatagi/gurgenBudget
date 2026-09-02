@@ -4,6 +4,7 @@ import {
   categoryTotal,
   dailyAllowance,
   moneySaved,
+  remainingDays,
   spendSoFar,
   surplus,
   type Item,
@@ -152,5 +153,40 @@ describe('moneySaved', () => {
     const at = new Date('2026-04-10T00:00:00Z') // elapsed = 9 loggable days
     const saved = moneySaved(1000, days, '2026-04', 30, at)
     expect(saved).toBe(1000 + -100 - 30 * (30 - 9))
+  })
+})
+
+describe('remainingDays', () => {
+  it('counts from today through month-end when browsing the current month', () => {
+    const at = new Date('2026-04-10T00:00:00Z') // today = April 10
+    expect(remainingDays(new Map(), '2026-04', at)).toBe(21) // days 10..30
+  })
+
+  it('excludes a logged future day from the count', () => {
+    const at = new Date('2026-04-10T00:00:00Z')
+    const days = new Map<string, number>([['2026-04-25', -500]])
+    expect(remainingDays(days, '2026-04', at)).toBe(20) // 21 minus the pre-logged day
+  })
+
+  it('is the full month minus pre-logged days for a future month', () => {
+    const at = new Date('2026-04-10T00:00:00Z')
+    const days = new Map<string, number>([['2026-06-01', -200]])
+    expect(remainingDays(days, '2026-06', at)).toBe(29) // 30 - 1 pre-logged day
+  })
+
+  it('is zero for a fully elapsed past month', () => {
+    const at = new Date('2026-05-01T00:00:00Z')
+    expect(remainingDays(new Map(), '2026-04', at)).toBe(0)
+  })
+})
+
+describe('moneySaved — future-day logging', () => {
+  it('does not double-count a pre-logged future day', () => {
+    const at = new Date('2026-04-10T00:00:00Z')
+    const days = new Map<string, number>([['2026-04-25', -500]])
+    const allowance = 100
+    const saved = moneySaved(1000, days, '2026-04', allowance, at)
+    // remaining = 20 (21 minus the pre-logged day), spendSoFar = -500
+    expect(saved).toBe(1000 + -500 - allowance * 20)
   })
 })

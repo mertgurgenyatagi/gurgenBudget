@@ -1,4 +1,4 @@
-import { daysInMonth, elapsedDays, monthOf, type DayKey, type MonthKey } from './time'
+import { currentMonth, dayKey, daysInMonth, monthOf, todayDayOfMonth, type DayKey, type MonthKey } from './time'
 
 export type Category =
   | 'baseIncome'
@@ -158,6 +158,26 @@ export function spendSoFar(days: Map<DayKey, number>, month: MonthKey): number {
 }
 
 /**
+ * Days left to project the allowance onto: any day from today through
+ * month-end (or the whole month, for a future month) that has no log
+ * entry yet. A logged day — past, today, or future — is never projected,
+ * since its actual is already counted via spendSoFar. This is what makes
+ * pre-logging a future day (day-boundary agency, PROJECT.md's "no
+ * same-day fast path" aside) not double-count in Money Saved.
+ */
+export function remainingDays(days: Map<DayKey, number>, month: MonthKey, at?: Date): number {
+  const now = currentMonth(at)
+  if (month < now) return 0
+  const total = daysInMonth(month)
+  const from = month === now ? todayDayOfMonth(at) : 1
+  let count = 0
+  for (let d = from; d <= total; d++) {
+    if (!days.has(dayKey(month, d))) count++
+  }
+  return count
+}
+
+/**
  * Money Saved = Surplus + spendSoFar − (allowance × remaining days).
  * spendSoFar is added, not subtracted, because it's already negative when
  * money left the account — see the design spec's sign note.
@@ -169,9 +189,7 @@ export function moneySaved(
   allowance: number,
   at?: Date,
 ): number {
-  const elapsed = elapsedDays(month, at)
-  const remaining = daysInMonth(month) - elapsed
-  return surplusValue + spendSoFar(days, month) - allowance * remaining
+  return surplusValue + spendSoFar(days, month) - allowance * remainingDays(days, month, at)
 }
 
 /** Everything a month's screens need, computed fresh from the raw items. */
