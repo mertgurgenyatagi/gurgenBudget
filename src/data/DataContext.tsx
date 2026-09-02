@@ -28,16 +28,17 @@ interface DataState {
   ready: boolean
   saveError: string | null
   clearSaveError: () => void
-  addItem: (input: { category: Category; name: string; amount: number; month: MonthKey }) => void
+  addItem: (input: { category: Category; name: string; amount: number; month: MonthKey }) => string
   editItem: (item: Item, changes: { name?: string; amount?: number }, month: MonthKey) => void
   deleteItem: (item: Item, month: MonthKey) => void
   moveItem: (item: Item, category: Category) => void
   setActive: (item: Item, active: boolean) => void
   logDay: (day: DayKey, amount: number | null) => void
   setBuffer: (percent: number, mode: BufferMode, month: MonthKey) => void
+  setDynamicAllowance: (on: boolean) => void
 }
 
-const EMPTY_BUFFER: BufferSettings = { percent: 0, mode: 'slice', history: [] }
+const EMPTY_BUFFER: BufferSettings = { percent: 0, mode: 'slice', history: [], dynamicAllowance: false }
 
 const DataContext = createContext<DataState | null>(null)
 
@@ -96,6 +97,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         percent: typeof raw?.percent === 'number' ? raw.percent : 0,
         mode: raw?.mode === 'surplus' ? 'surplus' : 'slice',
         history: Array.isArray(raw?.history) ? raw.history : [],
+        dynamicAllowance: raw?.dynamicAllowance === true,
       })
       setLoaded((prev) => ({ ...prev, buffer: true }))
     })
@@ -114,7 +116,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addItem = useCallback<DataState['addItem']>(
     ({ category, name, amount, month }) => {
-      if (!uid) return
+      if (!uid) return ''
       const ref = doc(collection(db, 'users', uid, 'items'))
       setDoc(ref, {
         category,
@@ -125,8 +127,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         deletedMonth: null,
         month: isBase(category) ? null : month,
         deleted: false,
-        active: true,
+        active: false,
       }).catch(report)
+      return ref.id
     },
     [uid, report],
   )
@@ -200,9 +203,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
         alreadyRecorded || !changed
           ? buffer.history
           : [...buffer.history, { percent: buffer.percent, mode: buffer.mode, until: boundary }]
-      setDoc(doc(db, 'users', uid, 'settings', 'buffer'), { percent, mode, history }).catch(report)
+      setDoc(doc(db, 'users', uid, 'settings', 'buffer'), { percent, mode, history }, { merge: true }).catch(report)
     },
     [uid, buffer, report],
+  )
+
+  const setDynamicAllowance = useCallback<DataState['setDynamicAllowance']>(
+    (on) => {
+      if (!uid) return
+      setDoc(doc(db, 'users', uid, 'settings', 'buffer'), { dynamicAllowance: on }, { merge: true }).catch(report)
+    },
+    [uid, report],
   )
 
   const value = useMemo<DataState>(
@@ -220,10 +231,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setActive,
       logDay,
       setBuffer,
+      setDynamicAllowance,
     }),
     [
       items, days, buffer, loaded, saveError,
-      addItem, editItem, deleteItem, moveItem, setActive, logDay, setBuffer,
+      addItem, editItem, deleteItem, moveItem, setActive, logDay, setBuffer, setDynamicAllowance,
     ],
   )
 
