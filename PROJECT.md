@@ -28,7 +28,7 @@ Every TRY figure displays as **whole lira** — no kuruş, no decimal places, an
 
 Every item in the system is a **name + amount**. Nothing else. Amounts accept anything numeric — no validation blocking zero or negative values (consistent with the app's "full agency, no confirmation prompts" principle; a negative Flex Spend, for instance, might legitimately represent a refund).
 
-Items are added and edited **one at a time**: a simple "+ Add," tap an existing item to edit it. No bulk-entry table. Flex Spend and Wishlist share one add entry point with a toggle for which list a new item lands in, reflecting that items already move between the two.
+Items are added and edited **inline, directly on the list** — no add/edit dialog. "+ Add" creates a real item immediately (boilerplate name `ItemNN`, amount 0) already sorted into the list, its name field focused for an instant rename; name and amount are always-live inputs on the row itself, with delete alongside them. No bulk-entry table. Flex Spend and Wishlist each keep their own add entry point (rather than sharing one with a toggle at creation time), but every row on either screen carries a move control that sends the item to the other list — items still move freely between the two, just after creation rather than at it.
 
 | # | Category | Lifetime | Example |
 |---|---|---|---|
@@ -66,8 +66,9 @@ Daily Allowance = ((Surplus − Wishlist) / days in month) × (1 − Buffer%)
 
 - **days in month** is the calendar length of the month (28–31). The allowance is a flat per-day figure for the whole month, not a value that re-slices across the remaining days.
 - **Buffer%** and its **mode** are both set in Settings, and both follow the same forward-only rule: changing either only applies to months from that point on — past months keep whatever `{percent, mode}` was in effect at the time, the same as Base item deletion below. No 0–100 clamp; it accepts anything, like every other numeric field in the app.
-- **Wishlist** here means the sum of whatever is *currently in the Wishlist list*. It changes only when items are added, deleted, or moved to/from Flex Spend. Marking a Wishlist item **purchased does not change this total**.
+- **Wishlist** here means the sum of whatever is *currently in the Wishlist list*. It changes only when items are added, deleted, or moved to/from Flex Spend. Marking a Wishlist item **inactive removes it from this total** (same effect as a delete, but reversible) — see [Active / inactive](#active--inactive-replaces-the-old-purchased-mechanic) below.
 - A negative Daily Allowance is allowed and shown as-is.
+- **Dynamic Allowance** (a Settings toggle, off by default) swaps the *displayed* daily figure — on Dashboard and the Calendar header only — for a recomputed one: `(Daily Allowance × days in month + money spent so far) / days left unlogged`. Spend at that new rate for the rest of the month and total spend still lands on what the flat Daily Allowance would have produced. It's purely a display recompute: Money Saved and the Calendar's per-day tinting always use the flat Daily Allowance, never the dynamic figure, so the underlying ledger math never shifts underfoot.
 
 ---
 
@@ -76,7 +77,7 @@ Daily Allowance = ((Surplus − Wishlist) / days in month) × (1 − Buffer%)
 - Once a day, the user logs a single number: the **raw, whole change in their bank balance** for that day. No mental subtraction of rent, bills, or anything else — whatever the bank shows is what gets typed in.
 - A day with **no entry counts as zero spent**.
 - Logged days can be corrected later at any time, **including days in past or closed months**, with no confirmation warning.
-- **Logging is inherently retrospective.** The user will never log the current day in real time — late-night orders land after the day is functionally over for them. There is therefore **no same-day "log today" fast path**. The fast path is catching up on unlogged days.
+- **Logging is inherently retrospective in practice** — late-night orders land after the day is functionally over, so the user will rarely if ever log the current day in real time. The app doesn't enforce that, though: every day in the grid, past, today, or future, is directly loggable, in keeping with the app's full-agency principle. The fast path remains catching up on unlogged days; logging today, or pre-logging a future day, is simply never blocked.
 - **Day boundaries use a fixed timezone (Turkey time), always** — never the device's local time. This keeps the numbers stable regardless of where the user is when they log.
 - **The app opens to a dashboard first** (this month's numbers, current Daily Allowance), with logging one tap away — not straight into a logging flow.
 - The exact logging interaction (e.g. a calendar-style grid of day boxes rather than a sequential "next unlogged day" prompt) is a **UI design decision, deferred to implementation** — not a spec question. Whatever the layout, an unlogged day still counts as zero spent until corrected.
@@ -114,12 +115,12 @@ A deliberately semi-separate sub-system — *"a playground, not in terms of feel
 
 - The only ways the list itself changes: items **added**, **deleted**, **moved to/from Flex Spend**, or toggled **active/inactive** (see below).
 - The Wishlist total feeding the Daily Allowance formula is the sum of the **active** items currently in the list — an inactive item contributes nothing to it.
-- The list is **flat and unordered** — no manual reordering or priority ranking. Items show in the order added.
+- The list is **flat** — no manual reordering or priority ranking. Every list in the app, Wishlist included, sorts by **magnitude of amount, descending** (largest first), not insertion order.
 
 ### Active / inactive (replaces the old "purchased" mechanic)
 
-- Every Wishlist item carries an **Active** checkbox, on by default when the item is added.
-- Unchecking it makes the item **behave exactly like a deleted item** for that month's math — excluded from the Wishlist total, and therefore from the Daily Allowance and Money Saved calculations that total feeds into.
+- Every Wishlist item carries an **Active** checkbox, right on its row in the list — not tucked into an edit dialog. It's **off by default** when the item is added, since a freshly created item is a placeholder (see [Transaction Categories](#transaction-categories) above) rather than something meant to count yet.
+- Checking it in makes the item **count toward that month's math**; unchecked, it **behaves exactly like a deleted item** — excluded from the Wishlist total, and therefore from the Daily Allowance and Money Saved calculations that total feeds into.
 - Unlike a delete, it's **fully surfaced and instantly reversible**: the item stays visible in the list, dimmed via opacity, and re-checking Active brings it right back into the totals. No quiet/unsurfaced history involved — this is a plain, user-facing toggle, not the deletion safety net.
 - There is no separate "purchased" state, no crossing-out, and marking an item inactive **does not consume Money Saved** the way the old purchased mechanic did — it simply removes the item's amount from the Wishlist total, same as any other item leaving the list would.
 
@@ -141,12 +142,12 @@ Money Saved = Surplus − (sum of actual daily logs so far) − (projected spend
 
 Not yet designed, but the spec implies at minimum:
 
-- **Dashboard / home** — the default screen on open: this month's numbers and current Daily Allowance, with logging one tap away. No first-run onboarding — even on a brand-new account, it's the same empty dashboard, figured out as you go.
-- **Calendar** (the Daily log) — the unlogged-days catch-up flow. Exact interaction (day-grid vs. sequential prompt) is a design decision, not yet made. **Changing month happens here**, in the grid's own header — see History below.
-- **Base Income**, **Flex Income**, **Base Spend**, **Flex Spend** — four separate screens (not one combined "Month setup" screen). Items added/edited one at a time. Flex Spend shares its add entry point with Wishlist, via a list toggle.
+- **Dashboard / home** — the default screen on open: this month's numbers and current Daily Allowance, with logging one tap away. No first-run onboarding — even on a brand-new account, it's the same empty dashboard, figured out as you go. Follows whichever month is currently browsed (see Calendar below), not always the real current month — its label switches between "Today" and the month name accordingly.
+- **Calendar** (the Daily log) — the unlogged-days catch-up flow, though every day (past, today, or future) is directly loggable, not just past ones. Exact interaction (day-grid vs. sequential prompt) is a design decision, not yet made. **Month changing** lives in a small stepper shared by every month-scoped screen (Dashboard, Wishlist, the four Month Setup screens, and Calendar itself) — stepping the month on any one of them moves all of them together.
+- **Base Income**, **Flex Income**, **Base Spend**, **Flex Spend** — four separate screens (not one combined "Month setup" screen). Items added/edited inline, one at a time, each with its own add entry point (see Transaction Categories above).
 - **Wishlist** — the Wishlist list (flat, unordered) and Money Saved together.
-- **History** — past months, still fully editable; each past month shows its own Base/Flex figures *and* its own Wishlist (inactive items shown dimmed in context). Separated from the current month by display only. **History is not a destination screen.** Its main job — moving between months — belongs to the **Calendar**, whose header steps back and forward through months; browsing a past month is the same grid with that month's days filled in. Whatever else History covers is reached from a **quiet row in Settings**, deliberately a tucked-away afterthought rather than a headline screen. It is not on the swipe ring.
-- **Settings** — a visible, dedicated screen. The Buffer (percent + mode toggle) lives here (not edited inline elsewhere), alongside things like sign-out, plus the low-key History entry described above.
+- ~~History~~ — **removed.** Originally spec'd as a separate destination for browsing/editing past months; once every month-scoped ring screen could browse and edit any month directly (via the shared stepper described under Calendar above), History's entire job became redundant, so the screen, its route, and its Settings entry were all deleted.
+- **Settings** — a visible, dedicated screen. The Buffer (percent + mode toggle) and the **Dynamic Allowance** toggle both live here (not edited inline elsewhere), alongside things like sign-out.
 
 ---
 
@@ -161,7 +162,7 @@ From Dashboard:
 - continuing left past Wishlist → the four Month Setup screens, in the order **Base Income, Flex Income, Base Spend, Flex Spend**
 - **then Settings**, which sits between Flex Spend and Calendar — i.e. one swipe *right* of Calendar, two swipes right of Dashboard — closing the ring.
 
-History is not on the ring: month changing lives in the Calendar and the remainder hangs off Settings, as described above.
+There is no History screen — see [Screens Implied By The Spec](#screens-implied-by-the-spec) above; month changing lives in a stepper shared by every month-scoped ring screen.
 
 ---
 
@@ -275,3 +276,14 @@ The ring's backdrop went darker still — `--backdrop` is now a very dark gray (
 **Month navigation and edits are no longer capped at the current month** — the `›` step in both the Calendar and History now goes as far into the future as you like, for pre-planning ahead (adding a Flex Income item for next month, say). The formulas already handled any month generically; this was only ever a self-imposed UI cap, now removed.
 
 **The "purchased" mechanic on Wishlist items was replaced with a plain Active/Inactive toggle.** Marking an item purchased used to leave it crossed out in the list while separately deducting its amount from the projected Money Saved, on top of the amount already being baked into the Wishlist total. That's gone. Every Wishlist item now carries an `active` field (defaulting to `true`); unchecking Active in the item sheet excludes the item from the Wishlist total for that month — the same effect a delete has on the Daily Allowance and Money Saved formulas — but, unlike a delete, it's a fully surfaced, instantly reversible toggle: the item stays in the list at reduced opacity rather than disappearing into the quiet deletion history. `formulas.ts` dropped `purchasedTotal` entirely and `moneySaved` no longer takes a purchased-amount argument; `categoryTotal` now filters out inactive Wishlist items before summing. Covered by an added Vitest case. Also, unrelated: `--backdrop` (the ring's ground color) went from dark gray to light beige. Both merged into `main`.
+
+**Six agency/UX fixes landed as a batch** ("launch hotfixes"), per the design spec at [docs/superpowers/specs/2026-09-02-launch-hotfixes-design.md](docs/superpowers/specs/2026-09-02-launch-hotfixes-design.md) and its implementation plan at [docs/superpowers/plans/2026-09-02-launch-hotfixes.md](docs/superpowers/plans/2026-09-02-launch-hotfixes.md):
+
+- **One shared browsable month** (`src/data/ViewedMonthContext.tsx`) replaces every screen's own `currentMonth()` call — Dashboard, Wishlist, the four Month Setup screens, and Calendar all read and step the same month via a small shared `MonthStepper` header, so stepping forward on any one of them (to pre-set next month's Flex items, say) moves all of them together. Dashboard now shows whichever month is browsed, its label switching between "Today" and the month name.
+- **History is deleted** — `History.tsx`, its `/history` route, and its Settings entry are gone; every ring screen that touches month-scoped data now does what History used to do, plus lets you edit while browsing.
+- **Every day in the Calendar is directly loggable** — past, today, or future, no more "future" cell restriction. This exposed a real double-counting bug in Money Saved (a pre-logged future day was counted both as an actual and as a projected allowance day); fixed by redefining "remaining days" in `formulas.ts` as unlogged days rather than calendar-future days.
+- **The item sheet is gone.** `ItemSheet.tsx` is deleted; `CategoryBars` and `WishlistBody` rows are directly editable — live name/amount inputs, a delete action, and (Flex Spend/Wishlist) a move-to-the-other-list action, right on the row. "+ Add" creates a real item immediately (`ItemNN`, amount 0) instead of opening a dialog, sorted into the list by magnitude like every other list (largest first).
+- **The Wishlist Active checkbox moved onto the row itself** and now **defaults off** — a freshly created Wishlist item doesn't count toward the Wishlist total (and therefore Daily Allowance / Money Saved) until explicitly switched on.
+- **Dynamic Allowance**, a new Settings toggle (off by default): recomputes the daily figure shown on Dashboard and the Calendar header from money already spent this month, so the month's total projected spend still lands on what the flat allowance would have produced. Purely a display recompute — Money Saved and the Calendar's per-day tinting always stay pinned to the flat allowance.
+
+Covered by 8 added Vitest cases (28 total) over the formula layer. That work is merged into `main`.
