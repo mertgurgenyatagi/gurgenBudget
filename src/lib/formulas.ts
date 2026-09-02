@@ -98,9 +98,9 @@ export function amountInMonth(item: Item, month: MonthKey): number | null {
 }
 
 export function itemsInMonth(items: Item[], month: MonthKey, category: Category): Item[] {
-  return items.filter(
-    (i) => i.category === category && amountInMonth(i, month) !== null,
-  )
+  return items
+    .filter((i) => i.category === category && amountInMonth(i, month) !== null)
+    .sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))
 }
 
 export function categoryTotal(items: Item[], month: MonthKey, category: Category): number {

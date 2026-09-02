@@ -5,6 +5,7 @@ import {
   computeMonth,
   dailyAllowance,
   dynamicAllowance,
+  itemsInMonth,
   moneySaved,
   remainingDays,
   spendSoFar,
@@ -207,6 +208,18 @@ describe('dynamicAllowance', () => {
 
   it('equals the flat figure at the very start of the month, nothing spent yet', () => {
     expect(dynamicAllowance(100, 30, 0, 30)).toBeCloseTo(100)
+  })
+})
+
+describe('itemsInMonth — sorting', () => {
+  it('sorts by magnitude of amount, descending', () => {
+    const items = [
+      item({ id: 'a', category: 'flexSpend', month: '2026-04', createdMonth: '2026-04', amount: 50 }),
+      item({ id: 'b', category: 'flexSpend', month: '2026-04', createdMonth: '2026-04', amount: -500 }),
+      item({ id: 'c', category: 'flexSpend', month: '2026-04', createdMonth: '2026-04', amount: 200 }),
+    ]
+    const result = itemsInMonth(items, '2026-04', 'flexSpend')
+    expect(result.map((i) => i.id)).toEqual(['b', 'c', 'a'])
   })
 })
 
