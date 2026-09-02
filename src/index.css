@@ -199,7 +199,7 @@ html, body {
   margin-bottom: 16px;
 }
 
-.cal .head .month {
+.stepper {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -209,7 +209,7 @@ html, body {
   color: var(--muted);
 }
 
-.cal .head .month .step {
+.stepper .step {
   font-size: 17px;
   line-height: 1;
   letter-spacing: 0;
@@ -221,9 +221,19 @@ html, body {
   cursor: pointer;
 }
 
-.cal .head .month .step:disabled {
-  opacity: .3;
-  cursor: default;
+.screen--ink .stepper {
+  color: var(--b-muted);
+}
+
+.screen--ink .stepper .step {
+  color: var(--onink);
+}
+
+/* Wishlist, Month Setup, and Dashboard render MonthStepper as the screen's
+   first direct child; the Calendar keeps its own .cal .head layout below,
+   so this only fires where it should. */
+.screen > .stepper {
+  margin-bottom: 18px;
 }
 
 .cal .head .allw {
