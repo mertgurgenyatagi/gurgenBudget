@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
+import { ViewedMonthProvider } from '../data/ViewedMonthContext'
 import { BaseIncome } from './BaseIncome'
 import { BaseSpend } from './BaseSpend'
 import { Dashboard } from './Dashboard'
@@ -185,14 +186,16 @@ export function Ring() {
   const paddedPages = [PAGES[N - 1], ...PAGES, PAGES[0]]
 
   return (
-    <div ref={screenRef} className="ring-screen">
-      <div ref={trackRef} className="ring-track">
-        {paddedPages.map((page, i) => (
-          <div className="ring-slot" key={i}>
-            {page}
-          </div>
-        ))}
+    <ViewedMonthProvider>
+      <div ref={screenRef} className="ring-screen">
+        <div ref={trackRef} className="ring-track">
+          {paddedPages.map((page, i) => (
+            <div className="ring-slot" key={i}>
+              {page}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </ViewedMonthProvider>
   )
 }
