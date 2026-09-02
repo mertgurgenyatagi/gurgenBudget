@@ -103,6 +103,16 @@ export function itemsInMonth(items: Item[], month: MonthKey, category: Category)
     .sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))
 }
 
+/**
+ * Boilerplate name for a freshly created item: one past however many
+ * already exist in the caller's scope (category, and month for
+ * Flex/Wishlist items). No uniqueness guarantee beyond that — the user
+ * is expected to rename it immediately.
+ */
+export function nextItemName(items: Item[]): string {
+  return `Item${String(items.length + 1).padStart(2, '0')}`
+}
+
 export function categoryTotal(items: Item[], month: MonthKey, category: Category): number {
   return itemsInMonth(items, month, category)
     .filter((i) => i.category !== 'wishlist' || i.active)

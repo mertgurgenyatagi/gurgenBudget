@@ -7,6 +7,7 @@ import {
   dynamicAllowance,
   itemsInMonth,
   moneySaved,
+  nextItemName,
   remainingDays,
   spendSoFar,
   surplus,
@@ -220,6 +221,16 @@ describe('itemsInMonth — sorting', () => {
     ]
     const result = itemsInMonth(items, '2026-04', 'flexSpend')
     expect(result.map((i) => i.id)).toEqual(['b', 'c', 'a'])
+  })
+})
+
+describe('nextItemName', () => {
+  it('starts at Item01 for an empty scope', () => {
+    expect(nextItemName([])).toBe('Item01')
+  })
+
+  it('numbers one past however many items already exist', () => {
+    expect(nextItemName([item({ id: 'a' }), item({ id: 'b' })])).toBe('Item03')
   })
 })
 
