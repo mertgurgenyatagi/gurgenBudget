@@ -138,18 +138,65 @@ html, body {
 
 .wishlist-body .row {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
   border-bottom: 1px dashed var(--rule);
-  padding: 12px 0;
+  padding: 14px 0;
   font-size: 14px;
-  cursor: pointer;
 }
 
-.wishlist-body .row .num {
+.wishlist-body .row .top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wishlist-body .row .top input[type='text'] {
+  font: inherit;
+  border: none;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  padding: 0 0 2px;
+}
+
+.wishlist-body .row .top input[type='text']:focus {
+  outline: none;
+  border-bottom: 1px solid var(--ink);
+}
+
+.wishlist-body .row .top input.n {
+  flex: 1;
+}
+
+.wishlist-body .row .top input.num {
   font-size: 15px;
   font-weight: 700;
+  text-align: right;
+  width: 90px;
+}
+
+.wishlist-body .row .actions {
+  display: flex;
+  gap: 14px;
+  padding-left: 26px;
+}
+
+.wishlist-body .row .actions button {
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+}
+
+.wishlist-body .row .actions .delete {
+  color: var(--short);
 }
 
 .wishlist-body .row.inactive {
