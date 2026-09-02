@@ -1,42 +1,48 @@
 import { useState } from 'react'
 import { useData } from '../../data/DataContext'
-import { categoryTotal, itemsInMonth, type Category, type Item } from '../../lib/formulas'
-import type { MonthKey } from '../../lib/time'
+import { categoryTotal, itemsInMonth, nextItemName, type Category } from '../../lib/formulas'
+import { useViewedMonth } from '../../data/ViewedMonthContext'
 import { CategoryBars } from './CategoryBars'
-import { ItemSheet } from './ItemSheet'
+import { MonthStepper } from './MonthStepper'
 
 type MonthSetupScreenProps = {
   category: Category
   label: string
   kind: 'income' | 'spend'
-  month: MonthKey
 }
 
 // Shared by the four Month Setup screens, which stay four distinct screens
-// on the ring. Also reused by History, fed a past month instead of the
-// current one.
-export function MonthSetupScreen({ category, label, kind, month }: MonthSetupScreenProps) {
-  const { items } = useData()
-  const [editing, setEditing] = useState<Item | 'new' | null>(null)
+// on the ring. Reads the ring's shared browsable month (ViewedMonthContext)
+// rather than taking one as a prop, so stepping the month anywhere on the
+// ring moves this screen's contents too — that's what makes setting up
+// next month's Flex items in advance possible.
+export function MonthSetupScreen({ category, label, kind }: MonthSetupScreenProps) {
+  const { items, addItem, editItem, deleteItem, moveItem } = useData()
+  const { month } = useViewedMonth()
+  const [autoFocusId, setAutoFocusId] = useState<string | null>(null)
+
+  const scoped = itemsInMonth(items, month, category)
+
+  function handleAdd() {
+    const id = addItem({ category, name: nextItemName(scoped), amount: 0, month })
+    setAutoFocusId(id)
+  }
 
   return (
     <div className="screen ms">
+      <MonthStepper />
       <CategoryBars
         label={label}
         kind={kind}
-        items={itemsInMonth(items, month, category)}
+        items={scoped}
         total={categoryTotal(items, month, category)}
-        onSelectItem={setEditing}
-        onAdd={() => setEditing('new')}
+        autoFocusId={autoFocusId}
+        onAdd={handleAdd}
+        onRename={(item, name) => editItem(item, { name }, month)}
+        onReamount={(item, amount) => editItem(item, { amount }, month)}
+        onDelete={(item) => deleteItem(item, month)}
+        onMove={category === 'flexSpend' ? (item) => moveItem(item, 'wishlist') : undefined}
       />
-      {editing !== null && (
-        <ItemSheet
-          category={category}
-          item={editing === 'new' ? null : editing}
-          month={month}
-          onClose={() => setEditing(null)}
-        />
-      )}
     </div>
   )
 }

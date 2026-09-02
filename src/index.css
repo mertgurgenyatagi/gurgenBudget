@@ -393,8 +393,7 @@ html, body {
 }
 
 .bars .bar {
-  margin: 12px 0;
-  cursor: pointer;
+  margin: 18px 0;
 }
 
 .bars .bar .top {
@@ -405,11 +404,28 @@ html, body {
   margin-bottom: 5px;
 }
 
-.bars .bar .top .n {
+.bars .bar .top input {
+  font: inherit;
+  border: none;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  padding: 0 0 2px;
+}
+
+.bars .bar .top input:focus {
+  outline: none;
+  border-bottom: 1px solid var(--ink);
+}
+
+.bars .bar .top input.n {
+  flex: 1;
   color: var(--muted);
 }
 
-.bars .bar .top .num {
+.bars .bar .top input.num {
+  width: 100px;
+  text-align: right;
   font-weight: 700;
 }
 
@@ -423,6 +439,29 @@ html, body {
 .bars .bar .fill {
   height: 100%;
   border-radius: 4px;
+}
+
+.bars .bar .actions {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.bars .bar .actions button {
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+}
+
+.bars .bar .actions .delete {
+  color: var(--short);
 }
 
 .bars .add {
