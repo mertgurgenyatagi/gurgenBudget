@@ -14,6 +14,7 @@ type CategoryBarsProps = {
   onRename: (item: Item, name: string) => void
   onReamount: (item: Item, amount: number) => void
   onDelete: (item: Item) => void
+  onToggleActive: (item: Item, active: boolean) => void
   /** Only Flex Spend rows get a move-to-Wishlist control. */
   onMove?: (item: Item) => void
 }
@@ -26,10 +27,11 @@ type BarProps = {
   onRename: (item: Item, name: string) => void
   onReamount: (item: Item, amount: number) => void
   onDelete: (item: Item) => void
+  onToggleActive: (item: Item, active: boolean) => void
   onMove?: (item: Item) => void
 }
 
-function Bar({ item, total, fill, autoFocus, onRename, onReamount, onDelete, onMove }: BarProps) {
+function Bar({ item, total, fill, autoFocus, onRename, onReamount, onDelete, onToggleActive, onMove }: BarProps) {
   const [name, setName] = useState(item.name)
   const [amount, setAmount] = useState(String(item.amount))
 
@@ -40,8 +42,13 @@ function Bar({ item, total, fill, autoFocus, onRename, onReamount, onDelete, onM
   useEffect(() => setAmount(String(item.amount)), [item.amount])
 
   return (
-    <div className="bar">
+    <div className={item.active ? 'bar' : 'bar inactive'}>
       <div className="top">
+        <input
+          type="checkbox"
+          checked={item.active}
+          onChange={(e) => onToggleActive(item, e.target.checked)}
+        />
         <input
           className="n"
           type="text"
@@ -96,6 +103,7 @@ export function CategoryBars({
   onRename,
   onReamount,
   onDelete,
+  onToggleActive,
   onMove,
 }: CategoryBarsProps) {
   const fill = kind === 'income' ? 'var(--accent)' : 'var(--short)'
@@ -114,6 +122,7 @@ export function CategoryBars({
           onRename={onRename}
           onReamount={onReamount}
           onDelete={onDelete}
+          onToggleActive={onToggleActive}
           onMove={onMove}
         />
       ))}

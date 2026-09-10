@@ -127,7 +127,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         deletedMonth: null,
         month: isBase(category) ? null : month,
         deleted: false,
-        active: false,
+        active: category !== 'wishlist',
       }).catch(report)
       return ref.id
     },

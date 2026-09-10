@@ -31,9 +31,10 @@ export interface Item {
   month: MonthKey | null
   /** Quiet safety net — deleted flex/wishlist items stay put, filtered from view. */
   deleted: boolean
-  /** Wishlist only. Inactive items are excluded from the month's totals, same as
-   * deleted, but user-toggled and surfaced (dimmed row, checkbox) rather than
-   * a quiet backstop. Defaults to true. */
+  /** Inactive items are excluded from the month's totals, same as deleted, but
+   * user-toggled and surfaced (dimmed row, checkbox) rather than a quiet
+   * backstop. Defaults to true everywhere except Wishlist, where a freshly
+   * created item is a placeholder and starts unchecked. */
   active: boolean
 }
 
@@ -115,7 +116,7 @@ export function nextItemName(items: Item[]): string {
 
 export function categoryTotal(items: Item[], month: MonthKey, category: Category): number {
   return itemsInMonth(items, month, category)
-    .filter((i) => i.category !== 'wishlist' || i.active)
+    .filter((i) => i.active)
     .reduce((sum, i) => sum + (amountInMonth(i, month) ?? 0), 0)
 }
 

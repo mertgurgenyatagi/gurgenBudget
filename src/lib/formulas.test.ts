@@ -72,15 +72,23 @@ describe('amountInMonth — flex/wishlist items', () => {
   })
 })
 
-describe('categoryTotal — wishlist active/inactive', () => {
-  it('excludes inactive wishlist items from the total, but not other categories', () => {
+describe('categoryTotal — active/inactive', () => {
+  it('excludes inactive wishlist items from the total', () => {
     const items = [
       item({ id: 'a', category: 'wishlist', month: '2026-04', createdMonth: '2026-04', amount: 1000, active: true }),
       item({ id: 'b', category: 'wishlist', month: '2026-04', createdMonth: '2026-04', amount: 500, active: false }),
-      item({ id: 'c', category: 'baseIncome', amount: 200, active: false }),
     ]
     expect(categoryTotal(items, '2026-04', 'wishlist')).toBe(1000)
-    expect(categoryTotal(items, '2026-04', 'baseIncome')).toBe(200)
+  })
+
+  it('also excludes inactive Base/Flex Income/Spend items, the same way', () => {
+    const items = [
+      item({ id: 'a', category: 'baseIncome', amount: 5000, active: true }),
+      item({ id: 'b', category: 'baseIncome', amount: 200, active: false }),
+      item({ id: 'c', category: 'flexSpend', month: '2026-04', createdMonth: '2026-04', amount: 300, active: false }),
+    ]
+    expect(categoryTotal(items, '2026-04', 'baseIncome')).toBe(5000)
+    expect(categoryTotal(items, '2026-04', 'flexSpend')).toBe(0)
   })
 })
 

@@ -478,6 +478,10 @@ html, body {
   font-weight: 700;
 }
 
+.bars .bar.inactive {
+  opacity: .4;
+}
+
 .bars .bar .track {
   height: 7px;
   border-radius: 4px;

@@ -17,7 +17,7 @@ type MonthSetupScreenProps = {
 // ring moves this screen's contents too — that's what makes setting up
 // next month's Flex items in advance possible.
 export function MonthSetupScreen({ category, label, kind }: MonthSetupScreenProps) {
-  const { items, addItem, editItem, deleteItem, moveItem } = useData()
+  const { items, addItem, editItem, deleteItem, moveItem, setActive } = useData()
   const { month } = useViewedMonth()
   const [autoFocusId, setAutoFocusId] = useState<string | null>(null)
 
@@ -41,6 +41,7 @@ export function MonthSetupScreen({ category, label, kind }: MonthSetupScreenProp
         onRename={(item, name) => editItem(item, { name }, month)}
         onReamount={(item, amount) => editItem(item, { amount }, month)}
         onDelete={(item) => deleteItem(item, month)}
+        onToggleActive={(item, active) => setActive(item, active)}
         onMove={category === 'flexSpend' ? (item) => moveItem(item, 'wishlist') : undefined}
       />
     </div>
